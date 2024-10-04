@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Order = require('../models/orderModel');
 const Customer = require('../models/customerModel');
+const bcrypt = require('bcryptjs');
 
 exports.users = async (req, res) => {
     try {
@@ -119,30 +120,82 @@ exports.createUser = async(req, res) => {
     }
 }
 
-exports.editUser = async(req, res) => {
+exports.editUser = async (req, res) => {
+    console.log('Edit user route hit');
+    const { first_name, last_name, role, username, password } = req.body;
     try {
-
-        console.log('Request Body:', req.body); // Log the body
-        console.log('User ID:', req.params.id); // Log the ID
-
-        const { id } = req.params;
-        const { first_name, last_name, role, username, password } = req.body;
-
-        let inputFields = { first_name, last_name, role, username, password };
-
-        const updateUser = await User.findByIdAndUpdate(id, inputFields, { new: true });
-
-        if(!updateUser) {
-            return res.status(404).json({message: 'User not found'});
+        let user = await User.findById(req.params.id); // Make sure req.params.id is coming from the URL
+        if (!user) {
+            return res.status(404).send('User not found');
         }
-        res.status(200).json({message: 'User updated successfully'});
-    } catch {
-        res.status(400).json({message: error.message});
+
+        user.first_name = first_name;
+        user.last_name = last_name;
+        user.role = role;
+        user.username = username;
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt);
+        }
+
+        await user.save();
+        res.status(200).json({ success: "User updated successfully" });
+    } catch (error) {
+        console.error(error); // Log the error for your records
+        res.status(500).json({ error: "An unexpected error occurred. Please try again later." }); // Send a generic message
     }
-}
+};
 
-// exports.deleteUser = async(req, res) => {
-//     try {
 
-//     }
-// }
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        await User.deleteOne({ _id: user._id });
+        res.status(200).json({ success: "User deleted successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+};
+
+exports.displayTransactions = async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate({
+                path: 'customer',
+                select: 'first_name last_name phone email street_address city province postal_code'
+            })
+            .populate({
+                path: 'products.product',
+                select: 'name price size'
+            });
+
+        const totalRecords = orders.length;
+        const totalPending = orders.filter(order => order.status === 'pending').length;
+        const totalDelivered = orders.filter(order => order.status === 'delivered').length;
+        const totalCancelled = orders.filter(order => order.status === 'cancelled').length;
+
+        const customers = await Customer.find(); 
+        const totalCustomers = customers.length; 
+
+        res.render('inventory', {
+            orders,
+            totalRecords,
+            totalPending,
+            totalDelivered,
+            totalCancelled,
+            totalCustomers,
+        });
+        
+    } catch (error) {
+        console.error('Error fetching orders:', error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
