@@ -450,6 +450,29 @@ select {
         .fixed-width {
             width: 250px; /* Set the desired width for this column */
         }
+        .toast {
+    visibility: hidden; /* Hidden by default */
+    min-width: 250px;
+    margin-left: -125px; /* Center the toast */
+    background-color: #333; /* Dark background */
+    color: #fff; /* White text */
+    text-align: center;
+    border-radius: 5px; /* Rounded borders */
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%; /* Center the toast horizontally */
+    bottom: 30px; /* Position at the bottom */
+    font-size: 17px;
+    opacity: 0; /* Initial opacity */
+    transition: opacity 0.5s, bottom 0.5s ease-in-out;
+}
+
+.toast.show {
+    visibility: visible; /* Show the toast */
+    opacity: 1; /* Full opacity */
+    bottom: 50px; /* Move it upwards */
+}
 
     </style>
 </head>
@@ -467,13 +490,12 @@ select {
                     <a href="/admin/orders" class="button dir-btn"><i class="fas fa-address-book"></i> DIRECTORY</a>
                 </div>
                 <div class="menu-column profile-card">
-                    <a href="/profile" class="button prof-btn">Profile</a>
-                    <a href="/welcome" class="button out-btn">Logout</a>
+                    <a href="/logout" class="button out-btn">Logout</a>
                 </div>
             </div>
             <div class="analysis-frame">
                 <div class="title-frame">
-                    <a href="/directory" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
+                    <a href="/admin/orders" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
                     Account Management
                     <button id="create" class="addbtn">Create New <i class="fas fa-plus"></i></button>
                 </div>
@@ -517,6 +539,31 @@ select {
         </div>
     </div>
 
+    <% if (success) { %>
+        <div id="toast" class="toast"><%= success %></div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const toast = document.getElementById('toast');
+                toast.className = "toast show";
+                setTimeout(function() {
+                    toast.className = toast.className.replace("show", "");
+                }, 3000); // Hide toast after 3 seconds
+            });
+        </script>
+        <% } %>
+
+        <% if (error) { %>
+            <div id="toast" class="toast"><%= error %></div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const toast = document.getElementById('toast');
+                    toast.className = "toast show";
+                    setTimeout(function() {
+                        toast.className = toast.className.replace("show", "");
+                    }, 3000); // Hide toast after 3 seconds
+                });
+            </script>
+            <% } %>
 
     <!-- Create Modal -->
 <div id="createModal" class="modal">

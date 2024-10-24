@@ -477,6 +477,105 @@ select {
         select::-webkit-scrollbar-thumb:hover {
             background: #777; /* Color of the scrollbar thumb on hover */
         }
+        .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.pagination a, 
+.pagination span {
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #497641;
+    font-weight: bold;
+}
+
+.pagination a:hover {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination span {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination a:active {
+    background-color: #5da850;
+    color: white;
+    border-color: #5da850;
+}
+
+.toast {
+    visibility: hidden; /* Hidden by default */
+    min-width: 250px;
+    margin-left: -125px; /* Center the toast */
+    background-color: #333; /* Dark background */
+    color: #fff; /* White text */
+    text-align: center;
+    border-radius: 5px; /* Rounded borders */
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%; /* Center the toast horizontally */
+    bottom: 30px; /* Position at the bottom */
+    font-size: 17px;
+    opacity: 0; /* Initial opacity */
+    transition: opacity 0.5s, bottom 0.5s ease-in-out;
+}
+
+.toast.show {
+    visibility: visible; /* Show the toast */
+    opacity: 1; /* Full opacity */
+    bottom: 50px; /* Move it upwards */
+}
+
+.form-container {
+            max-width: 400px;
+            margin: auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        input[type="text"], input[type='number'],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+        input[type="text"]:focus, input[type='number']:focus,
+        select:focus {
+            border-color: #4A90E2;
+            outline: none;
+        }
+        input[type="submit"] {
+            background-color: #497641;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="submit"]:hover {
+            background-color: #5da850;
+        }
 
     </style>
 </head>
@@ -489,19 +588,19 @@ select {
                     PDELSYS
                 </div>
                 <div class="menu-column menu-items">
-                    <a href="/dashboard" class="button das-btn"><i class="fas fa-tachometer-alt"></i> DASHBOARD</a>
-                    <a href="/inventory" class="button inv-btn"><i class="fas fa-box"></i> INVENTORY</a>
-                    <a href="/directory" class="button dir-btn"><i class="fas fa-address-book"></i> DIRECTORY</a>
+                    <a href="/admin/dashboard" class="button das-btn"><i class="fas fa-tachometer-alt"></i> DASHBOARD</a>
+                    <a href="/admin/transactions" class="button inv-btn"><i class="fas fa-box"></i> INVENTORY</a>
+                    <a href="/admin/orders" class="button dir-btn"><i class="fas fa-address-book"></i> DIRECTORY</a>
                 </div>
                 <div class="menu-column profile-card">
-                    <a href="/welcome" class="button out-btn">Logout</a>
+                    <a href="/logout" class="button out-btn">Logout</a>
                 </div>
             </div>
             <div class="analysis-frame">
                 <div class="title-frame">
                     <span>Delivery Management</span>
                     <span>
-                        <a href="/stocks" class="mngbtn">Manage Stocks &nbsp;<i class="fas fa-cog"></i></a>
+                        <a href="/admin/stocks" class="mngbtn">Manage Stocks &nbsp;<i class="fas fa-cog"></i></a>
                     <button id="addTransactionBtn" class="addbtn" onclick="openModal()">
                         New Order <i class="fas fa-plus"></i>
                     </button></span>
@@ -532,7 +631,7 @@ select {
                                 <th>Order No.</th>
                                 <th class="fixed-width">Ordered By</th>
                                 <th>Purchase</th>
-                                <th>Dispatch</th>
+                                <!-- <th>Dispatch</th> -->
                                 <th>Delivered By</th>
                                 <th  colspan="2">Actions</th>
                             </tr>
@@ -540,23 +639,24 @@ select {
                         <tbody>
                             <% orders.forEach(order => { %>
                                 <tr>
-                                    <td><span class="tdHead"><%= order.tr %><br></span>
-                                    <span class="green"><%= order.placed ? new Date(order.placed).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A' %></span></td>
                                     <td>
-                                        <span class="tdHead"><%= order.customer_name %></span><br><%= order.address %>
+                                        <span class="tdHead"><%= order.tr %><br></span>
+                                        <span class="green">
+                                            <%= order.placed ? new Date(order.placed).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A' %>
+                                        </span>
                                     </td>
-                                    <td><span class="tdHead"><%= order.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span><br>
-                                        <%= order.qty ? `${order.qty} Item${order.qty > 1 ? 's' : ''}` : '' %></td>
                                     <td>
-                                        <% if (order.dispatch) { %>
-                                            <span style="color: green;">
-                                                <%= new Date(order.dispatch).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) %>
-                                            </span>
-                                        <% } else { %>
-                                            <span style="color: gray;">Preparing</span>
-                                        <% } %>
+                                        <span class="tdHead"><%= order.customer.first_name %> <%= order.customer.last_name %></span><br>
+                                        <%= order.address %>
                                     </td>
-                                    <td><span class="tdHead"><%= order.courier || 'N/A' %></span><br>
+                                    <td>
+                                        <span class="tdHead">
+                                            <%= order.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                                        </span><br>
+                                        <%= order.qty ? `${order.qty} Item${order.qty > 1 ? 's' : ''}` : '' %>
+                                    </td>
+                                    <td>
+                                        <span class="tdHead"><%= order.courier || 'N/A' %></span><br>
                                         <% if (!order.status) { %>
                                             <span>Pending</span>
                                         <% } else if (order.status === 'cancelled') { %>
@@ -574,29 +674,129 @@ select {
                                     </td>
                                     <td>
                                         <a onclick="openEditModal(
-                                            '<%= order.transaction_id %>', 
+                                            '<%= order._id %>', 
                                             '<%= order.amount %>', 
                                             '<%= order.qty %>', 
-                                            '<%= order.customer_name %>', 
+                                            '<%= order.customer.first_name %> <%= order.customer.last_name %>', 
                                             '<%= order.address %>', 
-                                            '<%= order.dispatch ? new Date(order.dispatch).toISOString(): ',' %>', 
-                                            '<%= order.delivered ? new Date(order.delivered).toISOString(): ',' %>', 
+                                            '<%= order.dispatch ? new Date(order.dispatch).toISOString() : '' %>', 
+                                            '<%= order.delivered ? new Date(order.delivered).toISOString() : '' %>', 
                                             '<%= order.status %>'
                                         )">
                                             <i class="fas fa-pen icon"></i>
-                                        </a>                                   
+                                        </a>
                                     </td>
                                     <td>
-                                        <form action="/transactions/<%= order.transaction_id %>?_method=DELETE" method="POST" style="margin: 0;">
+                                        <form action="/admin/delete-order/<%= order._id %>" method="POST" style="margin: 0;">
                                             <button type="submit" class="btn btn-danger">
                                                 <i class="fas fa-trash-alt icon"></i>
                                             </button>
-                                        </form>
+                                        </form>                                        
                                     </td>
                                 </tr>
-                            <% }) %>
+                                
+                                <!-- Modal for editing order -->
+                                <div class="modal" id="editModal_<%= order._id %>" style="display:none;">
+                                    <div class="modal-content">
+                                        <div class="title-frame">
+                                            <a onclick="closeEditModal('editModal_<%= order._id %>')" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
+                                            <span>UPDATE DELIVERY</span>
+                                        </div>
+                                        <form id="editForm" action="/admin/edit-order/<%= order._id %>?_method=PUT" method="POST">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            <div class="row">
+                                                <div class="field">
+                                                    <label for="customer_name_<%= order._id %>">Customer Name:</label>
+                                                    <input type="text" name="customer_name" id="customer_name_<%= order._id %>" required>
+                                                </div>
+                                                <div class="field">
+                                                    <label for="address_<%= order._id %>">Address:</label>
+                                                    <input type="text" name="address" id="address_<%= order._id %>" required>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="field">
+                                                    <label for="qty_<%= order._id %>">Quantity:</label>
+                                                    <input type="number" name="qty" id="qty_<%= order._id %>" required>
+                                                </div>
+                                                <div class="field">
+                                                    <label for="amount_<%= order._id %>">Amount:</label>
+                                                    <input type="number" name="amount" id="amount_<%= order._id %>" required>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="field">
+                                                    <label for="dispatch_<%= order._id %>">Dispatch Date:</label>
+                                                    <input type="date" name="dispatch" id="dispatch_<%= order._id %>">
+                                                </div>
+                                                <div class="field">
+                                                    <label for="status_<%= order._id %>">Status:</label>
+                                                    <select name="status" id="status_<%= order._id %>" required>
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Delivered">Delivered</option>
+                                                        <option value="Cancelled">Cancelled</option>
+                                                    </select>
+                                                </div>
+                                                <div class="field">
+                                                    <label for="delivered_<%= order._id %>">Delivered Date:</label>
+                                                    <input type="date" name="delivered" id="delivered_<%= order._id %>">
+                                                </div>
+                                            </div>
+                                            <div class="form-buttons">
+                                                <button type="reset" class="clrbtn">CLEAR</button>
+                                                <button type="submit" class="newbtn">SAVE</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                        
+                            <% }) %>                          
                         </tbody>
+                        
+                        <script>
+                            function openEditModal(transactionId, amount, qty, customerName, address, dispatch, delivered, status) {
+                                // Set values in the form fields
+                                document.getElementById('customer_name_' + transactionId).value = customerName;
+                                document.getElementById('address_' + transactionId).value = address;
+                                document.getElementById('qty_' + transactionId).value = qty;
+                                document.getElementById('amount_' + transactionId).value = amount;
+                        
+                                // Set dispatch and delivered dates
+                                document.getElementById('dispatch_' + transactionId).value = dispatch ? new Date(dispatch).toISOString().substring(0, 10) : '';
+                                document.getElementById('delivered_' + transactionId).value = delivered ? new Date(delivered).toISOString().substring(0, 10) : '';
+                        
+                                // Set the status
+                                const statusSelect = document.getElementById('status_' + transactionId);
+                                statusSelect.value = status;
+                        
+                                // Show the modal
+                                document.getElementById('editModal_' + transactionId).style.display = 'block';
+                            }
+                        
+                            function closeEditModal(modalId) {
+                                document.getElementById(modalId).style.display = 'none';
+                            }
+                        </script>
+                        
                     </table>
+                    <div class="pagination">
+                        <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
+                        <% } %>
+                        
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <span><%= i %></span> <!-- Current page, no link -->
+                            <% } else { %>
+                                <a href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                            <% } %>
+                        <% } %>
+                        
+                        <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
+                        <% } %>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -610,58 +810,73 @@ select {
             <a onclick="closeModal()" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
             <span>NEW DELIVERY</span>
         </div>
-        <form id="transactionForm" action="/transactions" method="POST">
-            <div class="row">
-                <div class="field">
-                    <label>Choose Customer</label>
-                    <select class="populate" id="customerSelect" onchange="populateFields()" required>
-                        <option value="">Customer's List</option>
-                        <% customers.forEach(customer => { %>
-                            <option value="<%= customer.customer_id %>" 
-                                    data-name="<%= customer.first_name + ' ' + customer.last_name %>" 
-                                    data-address="<%= customer.street_address + ', ' + customer.city + ', ' + customer.province %>">
-                                <%= customer.first_name + ' ' + customer.last_name %>
-                            </option>
-                        <% }) %>
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="field">
-                    <input type="hidden" id="customerName" name="customerName" readonly>
-                </div>
-                <div class="field">
-                    <input type="hidden" id="address" name="address" readonly>
-                </div>
-            </div>
-            <div class="row">
-                <input type="hidden" id="status" name="status" value="Pending">
-            </div>
-            <div class="row">
-                <div class="field">
-                    <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" name="quantity" required>
-                </div>
-                <div class="field">
-                    <label for="amount">Amount</label>
-                    <input type="number" id="amount" name="amount" required>
-                </div>
-                <div class="field">
-                    <label for="courier">Courier</label>
-                    <select id="courier" name="courier" required>
-                        <option value="">Select Courier</option>
-                        <option value="In-House">In-House</option>
-                        <option value="Third-Party">Third-Party</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-buttons">
-                <button type="reset" class="clrbtn">CLEAR</button>
-                <button type="submit" class="newbtn">+ ADD</button>
-            </div>
+        <form action="/admin/add-order" method="post">
+            <label for="Name">Customer</label>
+            <select name="customer" id="customer" required>
+                <option value="">Select a Customer</option>
+                <% customers.forEach(customer => { %>
+                    <option value="<%= customer._id %>"><%= customer.first_name %> <%= customer.last_name %></option>
+                <% }) %>
+            </select>
+            
+            <label for="Product">Product</label>
+            <select name="product" id="product"required
+                <option value="">Select a product</option>
+                <% products.forEach(product => { %>
+                    <option value="<%= product._id %>" data-price="<%= product.price %>"><%= product.name %></option>
+                <% }) %>
+            </select>
+            
+            <label for="Quantity">Quantity</label>
+            <input type="number" name="quantity" id="quantity" min="1" value="1" required>
+            
+            <label for="Amount">Amount</label>
+            <input type="text" name="amount" id="amount" readonly>
+            
+            <label for="Courier">Courier</label>
+            <select name="courier" id="courier" required>
+                <option value="in-house">In-House</option>
+                <option value="third-party">Third-Party</option>
+            </select>
+            
+            <input type="submit" value="Submit">
         </form>
+            
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const productSelect = document.getElementById('product');
+        const quantityInput = document.getElementById('quantity');
+        const amountInput = document.getElementById('amount');
+
+        function calculateAmount() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0;
+            const quantity = parseInt(quantityInput.value) || 0;
+            const amount = price * quantity;
+            amountInput.value = amount.toFixed(2); // Format to 2 decimal places
+        }
+
+        productSelect.addEventListener('change', calculateAmount);
+        quantityInput.addEventListener('input', calculateAmount);
+    });
+</script>
+
+<% if (success) { %>
+    <div id="toast" class="toast"><%= success %></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('toast');
+            toast.className = "toast show";
+            setTimeout(function() {
+                toast.className = toast.className.replace("show", "");
+            }, 3000); // Hide toast after 3 seconds
+        });
+    </script>
+    <% } %>
+
 
 
 <script>
@@ -672,206 +887,59 @@ select {
     function closeModal() {
         document.querySelector(".modal").style.display = "none";
     }
-
-    function populateFields() {
-        const select = document.getElementById("customerSelect");
-        const selectedOption = select.options[select.selectedIndex];
-        const customerName = selectedOption.getAttribute("data-name");
-        const customerAddress = selectedOption.getAttribute("data-address");
-
-        document.getElementById("customerName").value = customerName || '';
-        document.getElementById("address").value = customerAddress || '';
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('transactionForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Validate required fields
-            const requiredFields = [
-                "customerName", 
-                "address", 
-                "quantity", 
-                "amount", 
-                "courier"
-            ];
-
-            for (const field of requiredFields) {
-                if (!document.getElementById(field).value) {
-                    alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}.`);
-                    return;
-                }
-            }
-
-            const transactionData = {
-                tr: "AUTO_GENERATED_TR_NO", // Update this according to your needs
-                status: document.getElementById("status").value,
-                customer_name: document.getElementById("customerName").value,
-                address: document.getElementById("address").value,
-                qty: document.getElementById("quantity").value,
-                amount: document.getElementById("amount").value,
-                dispatch: null,
-                courier: document.getElementById("courier").value,
-                delivered: null
-            };
-
-            fetch('/transactions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(transactionData),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json(); // Ensure server returns JSON
-            })
-            .then(data => {
-                closeModal(); // Close modal on success
-                fetchUpdatedTransactions(); // Refresh transactions
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    });
-
-    function fetchUpdatedTransactions() {
-        fetch('/inventory') // Adjust endpoint as needed to fetch updated data
-            .then(response => response.json())
-            .then(data => {
-                // Update your transactions table with new data
-                // Assuming you have a function to update the table
-                updateTransactionTable(data);
-            })
-            .catch(error => console.error('Error fetching transactions:', error));
-    }
-
-    function updateTransactionTable(transactions) {
-        const tableBody = document.querySelector('tbody'); // Adjust selector as needed
-        tableBody.innerHTML = ''; // Clear existing rows
-
-        transactions.forEach(transaction => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${transaction.tr}</td>
-                <td>${transaction.customer_name}</td>
-                <td>${transaction.address}</td>
-                <td>${transaction.qty}</td>
-                <td>${transaction.amount.toFixed(2)}</td>
-                <td>${transaction.placed ? new Date(transaction.placed).toLocaleString() : 'N/A'}</td>
-                <td>${transaction.dispatch ? new Date(transaction.dispatch).toLocaleString() : 'N/A'}</td>
-                <td>${transaction.courier || 'N/A'}</td>
-                <td>${transaction.delivered ? new Date(transaction.delivered).toLocaleString() : 'N/A'}</td>
-                <td>${transaction.status}</td>
-                <td>
-                    <a><i class="fas fa-pen icon"></i></a>
-                    <form action="" method="" style="margin: 0;">
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt icon"></i>
-                        </button>
-                    </form>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
 </script>
 
 <!-- Edit Modal -->
-<!-- Edit Modal -->
-<div class="modal" id="editModal">
-    <div class="modal-content">
-        <div class="title-frame">
-            <a onclick="closeEditModal()" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
-            <span>UPDATE DELIVERY</span>
-        </div>
-        <form id="editForm" action="" method="POST">
-            <input type="hidden" name="_method" value="PUT">
-            <div class="row">
-                <div class="field">
-                    <label for="customer_name">Customer Name:</label>
-                    <input type="text" name="customer_name" id="customer_name" required>
-                </div>
-                <div class="field">
-                    <label for="address">Address:</label>
-                    <input type="text" name="address" id="address" required>
-                </div>
-            </div>
-            <div class="row">
-                <div class="field">
-                    <label for="qty">Quantity:</label>
-                    <input type="number" name="qty" id="qty" required>
-                </div>
-                <div class="field">
-                    <label for="amount">Amount:</label>
-                    <input type="number" name="amount" id="amount" required>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="field">
-                    <label for="dispatch">Dispatch Date:</label>
-                    <input type="date" name="dispatch" id="dispatch">
-                </div>
-                <div class="field">
-                    <label for="status">Status:</label>
-                    <select name="status" id="status" required>
-                        <option value="Pending">Pending</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="delivered">Delivered Date:</label>
-                    <input type="date" name="delivered" id="delivered">
-                </div>
-            </div>
-            <div class="form-buttons">
-                <button type="reset" class="clrbtn">CLEAR</button>
-                <button type="submit" class="newbtn">SAVE</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 
 <script>
-function openEditModal(transactionId, amount, qty, customerName, address, dispatch, delivered, status) {
-    document.getElementById('editForm').action = `/transactions/${transactionId}`;
-    document.getElementById('amount').value = amount;
-    document.getElementById('qty').value = qty;
-    document.getElementById('customer_name').value = customerName;
-    document.getElementById('address').value = address;
+    function openEditModal(transactionId, amount, qty, customerName, address, dispatch, delivered, status) {
+        // Set values in the form fields
+        document.getElementById('customer_name_' + transactionId).value = customerName;
+        document.getElementById('address_' + transactionId).value = address;
+        document.getElementById('qty_' + transactionId).value = qty;
+        document.getElementById('amount_' + transactionId).value = amount;
 
-    // Format dates for input
-    document.getElementById('dispatch').value = dispatch ? new Date(dispatch).toISOString().split('T')[0] : ''; 
-    document.getElementById('delivered').value = delivered ? new Date(delivered).toISOString().split('T')[0] : ''; 
+        // Set dispatch and delivered dates
+        document.getElementById('dispatch_' + transactionId).value = dispatch ? new Date(dispatch).toISOString().substring(0, 10) : '';
+        document.getElementById('delivered_' + transactionId).value = delivered ? new Date(delivered).toISOString().substring(0, 10) : '';
 
-    document.getElementById('status').value = status;
+        // Set the status
+        const statusSelect = document.getElementById('status_' + transactionId);
+        statusSelect.value = status;
 
-    document.getElementById('editModal').style.display = "block";
-}
-
-
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = "none";
-}
-
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target == modal) {
-        closeEditModal();
+        // Show the modal
+        document.getElementById('editModal_' + transactionId).style.display = 'block';
     }
-}
-</script> 
 
-
-
+    function closeEditModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productSelect = document.getElementById('product');
+    
+        // Populate product prices into the options
+        <% products.forEach(product => { %>
+            const option = productSelect.querySelector(`option[value='<%= product.name %>']`);
+            option.dataset.price = <%= product.price %>; // Store price in data attribute
+        <% }) %>
+    
+        productSelect.addEventListener('change', updatePrice);
+        document.getElementById('quantity').addEventListener('input', updatePrice);
+    
+        function updatePrice() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const price = parseFloat(selectedOption.dataset.price) || 0; // Use dataset price if available
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+    
+            const totalAmount = price * quantity;
+            document.getElementById('amount').value = totalAmount.toFixed(2); // Display the amount with two decimal points
+        }
+    });
+    </script>
+    
 </body>
 
 </html>

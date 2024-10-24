@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DASHBOARD</title>
+    <title>Inventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 
     <style>
         body {
@@ -37,8 +36,9 @@
             height: 95%; /* Keep this height or adjust as needed */
             background-color: transparent;
             border-radius: 15px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             padding: 5px;
+            gap: 10px;
         }
 
         header {
@@ -55,7 +55,7 @@
 
         h1 {
             margin-top: 20px;
-            background-color: transparent;
+            background-color: white;
             height: 100%;
             display: flex;
             justify-content: center;
@@ -93,30 +93,40 @@
             border-spacing: 0;
             overflow: hidden;
             color: black;
+            padding: 10px;
         }
 
-        td {
+        .tdHead {
+            font-weight: bold;
+            font-size: 12.5px;
+        }
+
+        .green {
+            color: green;
+            font-weight: bold;
+        }
+
+        td, th {
+            padding: 10px 2px 10px 0;
             text-align: left;
-            padding: 0 0 0 10px;
-            margin: 0;
-            height: 30px;
             border-bottom: solid 0.5px rgb(174, 174, 174, 0.5);
+            margin: 0;
+
         }
 
         tr {
             padding: 0;
-            margin: 0;
-            height: 5px;
+            height: 3px;
         }
 
         th {
-            color: black;
-            font-size: 12px;
-            padding: 5px 0 5px 10px;
-            font-weight: normal;
-            text-align: left;
-            margin: 0;
-            border-bottom: solid 0.5px rgb(174, 174, 174, 0.5);
+            color: #497641;
+            font-weight: bold;
+            width: calc((100%-320px) / 7);
+        }
+
+        .fixed-width {
+            width: 320px; /* Set the desired width for this column */
         }
 
         .btn {
@@ -231,17 +241,17 @@
             border-radius: 20px;
             display: flex;
             flex-direction: column;
-            padding: 10px 20px;
+            padding: 20px 120px;
             gap: 20px;
             color: #083a3c;
             font-weight: bold;
         }
 
         .title-frame {
-            height: 20px;
+            height: 15px;
             background-color: transparent;
             padding: 8px;
-            font-size: 30px;
+            font-size: 20px;
             display: flex;
             justify-content: space-between; /* Change to space-between to position items */
             align-items: center;
@@ -264,19 +274,35 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        .addbtn:hover, .newbtn:hover, .clrbtn:hover {
+        .addbtn:hover, .newbtn:hover, .clrbtn:hover, .mngbtn:hover {
             background-color: #fbad48;
+        }
+
+        .mngbtn {
+            background-color: #083a3c; /* Default color for the Edit button */
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #c6c6c6;
+            font-family: 'Poppins', sans-serif;
         }
 
         .exitbtn:hover {
             color: #fbad48;
         }
 
-        .das-btn i {
+        .inv-btn i {
             color: #fbad48;
         }
 
-        .das-btn {
+        .inv-btn {
             color: white;
         }
 
@@ -285,6 +311,17 @@
         }
         
 .modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+}
+
+.EditModal {
     display: none; /* Hidden by default */
     position: fixed;
     z-index: 1; /* Sit on top */
@@ -305,7 +342,8 @@
     max-width: 600px; /* Limit max width */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     color: #083a3c;
-    font-size: 12px;
+    font-size: 8px;
+    line-height: 1em;
 }
 
 .newbtn {
@@ -373,6 +411,7 @@
         }
         .row {
             display: flex;
+            flex-direction: column;
             margin-bottom: 10px; /* Space between rows */
             gap: 10px;
         }
@@ -412,6 +451,18 @@
             align-items: left;
             line-height: 0.5em;
         }
+
+        .populate {
+            flex: 1; /* Allow inputs to grow */
+            margin-right: 5px; /* Space between inputs */
+            padding: 8px; /* Reduce padding for smaller inputs */
+            border: 1px solid black;
+            border-radius: 5px;
+            background-color: transparent;
+            color: black;
+            font-size: 14px; /* Font size for input */
+            font-family: 'Poppins', sans-serif;
+        }
         /* Dropdown styling */
 select {
     appearance: none; /* Remove default dropdown styling */
@@ -438,6 +489,65 @@ select {
         select::-webkit-scrollbar-thumb:hover {
             background: #777; /* Color of the scrollbar thumb on hover */
         }
+        .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.pagination a, 
+.pagination span {
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #497641;
+    font-weight: bold;
+}
+
+.pagination a:hover {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination span {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination a:active {
+    background-color: #5da850;
+    color: white;
+    border-color: #5da850;
+}
+
+.toast {
+    visibility: hidden; /* Hidden by default */
+    min-width: 250px;
+    margin-left: -125px; /* Center the toast */
+    background-color: #333; /* Dark background */
+    color: #fff; /* White text */
+    text-align: center;
+    border-radius: 5px; /* Rounded borders */
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%; /* Center the toast horizontally */
+    bottom: 30px; /* Position at the bottom */
+    font-size: 17px;
+    opacity: 0; /* Initial opacity */
+    transition: opacity 0.5s, bottom 0.5s ease-in-out;
+}
+
+.toast.show {
+    visibility: visible; /* Show the toast */
+    opacity: 1; /* Full opacity */
+    bottom: 50px; /* Move it upwards */
+}
 
     </style>
 </head>
@@ -460,44 +570,169 @@ select {
             </div>
             <div class="analysis-frame">
                 <div class="title-frame">
-                    <span>DASHBOARD</span>
-                    <button id="create" class="addbtn">MORE</button>
+                    <span>Stocks Management</span>
+                    <span>
+                    <button id="addTransactionBtn" class="addbtn" onclick="openModal()">
+                        Add new Item <i class="fas fa-plus"></i>
+                    </button></span>
                 </div>
-                <header>
-                    <h1 class="h1a">
-                        <p1 id="customerCount"></p1>
-                        <p2><i class="fas fa-database"></i></p2>
-                    </h1>
-                </header>
                 <div>
+                    <hr>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Size</th>
+                                <th>Stocks</th>
+                                <th>Price</th>
+                                <th  colspan="2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% products.forEach((product, index) => { %>
+                                <tr>
+                                    <td>
+                                        <span class="tdHead"><%= product.name %><br></span>
+                                        <span class="green"><%= product.description %></span>
+                                    </td>
+                                    <td>
+                                        <span class="tdHead"><%= product.size %></span><br>
+                                    </td>
+                                    <td>
+                                        <span class="tdHead"><%= product.stock %></span><br>
+                                    </td>
+                                    <td>
+                                        <span class="tdHead"><%= product.price %></span><br>
+                                    </td>
+                                    <td>
+                                        <a>
+                                            <i class="fas fa-pen icon" onclick="openEditModal(<%= index %>)"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/delete-product/<%= product._id %>" method="POST" style="margin: 0;">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash-alt icon"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            
+                                <div id="EditModal<%= index %>" class="EditModal">
+                                    <div class="modal-content">
+                                        <div class="title-frame">
+                                            <a onclick="closeEditModal(<%= index %>)" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
+                                            <span>EDIT ITEM</span>
+                                        </div>
+                                        <form id="transactionForm<%= index %>" action="/admin/edit-product/<%= product._id %>" method="POST">
+                                            <div class="row">
+                                                <div class="field">
+                                                    <label for="name<%= index %>">Name</label>
+                                                    <input type="text" id="name<%= index %>" name="name" required value="<%= product.name %>">
+                                                </div>
+                                                <div class="field">
+                                                    <label for="size<%= index %>">Size</label>
+                                                    <select id="size<%= index %>" name="size" required>
+                                                        <option value="<%= product.size %>"><%= product.size %></option>
+                                                        <option value="Extra-Small">Extra Small</option>
+                                                        <option value="Small">Small</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Large">Large</option>
+                                                    </select>
+                                                </div>
+                                                <div class="field">
+                                                    <label for="stock<%= index %>">Stocks</label>
+                                                    <input type="number" id="stock<%= index %>" name="stock" required value="<%= product.stock %>">
+                                                </div>
+                                                <div class="field">
+                                                    <label for="price<%= index %>">Price</label>
+                                                    <input type="number" id="price<%= index %>" name="price" required value="<%= product.price %>">
+                                                </div>
+                                            </div>
+                                            <div class="form-buttons">
+                                                <button type="reset" class="clrbtn">CANCEL</button>
+                                                <button type="submit" class="newbtn">+ ADD</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <script>
+                                    function openEditModal(index) {
+                                        document.getElementById('EditModal' + index).style.display = "block";
+                                    }
+                            
+                                    function closeEditModal(index) {
+                                        document.getElementById('EditModal' + index).style.display = "none";
+                                    }
+                                </script>
+                            <% }) %>                            
+                                           
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('token'); // Assuming you stored it after login
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="title-frame">
+                <a onclick="closeModal()" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
+                <span>NEW ITEM</span>
+            </div>
+            <form id="transactionForm" action="/admin/add-new-item" method="POST">
+                <div class="row">
+                    <div class="field">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="field">
+                        <label for="price">Price</label>
+                        <input type="number" id="price" name="price" required>
+                    </div>
+                    <div class="field">
+                        <label for="size">Size</label>
+                        <select id="size" name="size" required>
+                            <option value="">Select Size</option>
+                            <option value="Extra-Small">Extra Small</option>
+                            <option value="Small">Small</option>
+                            <option value="Meduim">Meduim</option>
+                            <option value="Large">Large</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="stock">Stocks</label>
+                        <input type="number" id="stock" name="stock" required>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="reset" class="clrbtn">CANCEL</button>
+                    <button type="submit" class="newbtn">+ ADD</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-            fetch('/api/user/dashboard', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Unauthorized');
-                return response.json();
-            })
-            .then(data => {
-                // Assuming data.customerCount is the field you want to display
-                document.getElementById('customerCount').innerText = data.customerCount || '0';
-            })
-            .catch(error => {
-                console.error(error);
-                document.getElementById('customerCount').innerText = 'Error fetching data';
-            });
+</body>
+<% if (success) { %>
+    <div id="toast" class="toast"><%= success %></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('toast');
+            toast.className = "toast show";
+            setTimeout(function() {
+                toast.className = toast.className.replace("show", "");
+            }, 3000); // Hide toast after 3 seconds
         });
     </script>
-</body>
+    <% } %>
+<script>
+    function openModal() {
+        document.getElementById('modal').style.display = 'block';
+    }
+    function closeModal() {
+        document.getElementById('modal').style.display = "none";
+    }
+</script>
 </html>

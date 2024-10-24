@@ -1,3 +1,3 @@
-exports.welcome = async(req, res) => {
-    res.status(200).render('welcome');
-}
+exports.welcome = (req, res) => {
+    res.render('welcome', { error: null });
+};

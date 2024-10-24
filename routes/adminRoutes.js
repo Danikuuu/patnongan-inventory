@@ -1,24 +1,41 @@
 const express = require('express');
 const router = express.Router();
+const authController = require('../controller/authController'); // Change here to import the whole controller
 
 const adminController = require('../controller/adminController');
 
-router.get('/users', adminController.users);
+router.get('/stocks', authController.isAuthenticated,adminController.displayStocks);
 
-router.get('/orders', adminController.displayOrders);
+router.get('/users', authController.isAuthenticated, adminController.users);
 
-router.post('/add-customer', adminController.addCustomer);
+router.get('/orders', authController.isAuthenticated, adminController.displayOrders);
 
-router.get('/dashboard', adminController.displayDashBoard);
+router.post('/add-customer', authController.isAuthenticated, adminController.addCustomer);
 
-router.get('/accounts', adminController.displayUsers);
+router.get('/dashboard', authController.isAuthenticated, adminController.displayDashBoard);
 
-router.post('/create-user', adminController.createUser);
+router.get('/accounts', authController.isAuthenticated, adminController.displayUsers);
 
-router.post('/update/:id', adminController.editUser);
+router.post('/create-user', authController.isAuthenticated, adminController.createUser);
 
-router.delete('/delete/:id', adminController.deleteUser);
+router.post('/update/:id', authController.isAuthenticated, adminController.editUser);
 
-router.get('/transactions', adminController.displayTransactions);
+router.delete('/delete/:id', authController.isAuthenticated, adminController.deleteUser);
+
+router.get('/transactions', authController.isAuthenticated, adminController.displayTransactions);
+
+router.post('/editOrder/:id', authController.isAuthenticated, adminController.updateOrderDetails);
+
+router.post('/add-new-item', authController.isAuthenticated, adminController.addNewItem);
+
+router.post('/edit-product/:id', authController.isAuthenticated, adminController.editProduct);
+
+router.post('/delete-product/:id', authController.isAuthenticated, adminController.deleteProduct);
+
+router.post('/add-order', authController.isAuthenticated, adminController.addNewOrder);
+
+router.post('/edit-order/:id', authController.isAuthenticated, adminController.editOrder);
+
+router.post('/delete-order/:id', authController.isAuthenticated, adminController.deleteOrder);
 
 module.exports = router;

@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const { validationResult } = require('express-validator');
 
+
 exports.login = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -15,12 +16,12 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ username });
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.render('welcome', { error: 'User not found' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.render('welcome', { error: 'Incorrect password' });
         }
         
         if(user.role == 'admin') {
@@ -29,14 +30,14 @@ exports.login = async (req, res) => {
             res.status(200).redirect('/admin/dashboard');
         }
 
-        if(user.role == 'user') {
-            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-            res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'strict' });
-            res.status(200).json('user');
-        }
+        // if(user.role == 'user') {
+        //     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        //     res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'strict' });
+        //     res.status(200).json('user');
+        // }
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.redirect('/', { error : 'Wrong credentials'} );
     }
 };
 
@@ -45,14 +46,14 @@ exports.isAuthenticated = async (req, res, next) => {
         const token = req.cookies.token;
 
         if (!token) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            res.render('welcome', { error: 'Unauthorized Action' });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).render('welcome', { error: 'User not found' });
         }
 
         req.user = user;

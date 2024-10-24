@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DASHBOARD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            color: #071a19;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
+            background: linear-gradient(to bottom, #01201b, #071a19);
+            padding: 15px;
+            box-sizing: border-box;
+            align-items: center;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        p1, p2, p3, p4 {
+            line-height: 1.5em;
+        }
+
+        p2 {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        p1 {
+            margin-left: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        p3 {
+            font-size: 12px;
+        }
+
+        p4 {
+            font-size: 8px;
+        }
+
+        p6 {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .emphas {
+            color: green;
+        }
+
+        .main-frame {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            height: 100%;
+            background-color: transparent; /* Dark gray background */
+            border-radius: 15px;
+            padding: 5px;
+        }
+
+        .analysis-frame {
+            display: flex;
+            flex: 1; /* Take remaining height */
+            background-color: #e1e1e1; /* Slightly lighter gray */
+            border-radius: 10px;
+            padding: 8px;
+            gap: 10px;
+        }
+
+        .pframe {
+            flex: 3; /* 75% width */
+            display: flex;
+            flex-direction: column;
+            background-color: transparent; /* Lighter gray */
+            border-radius: 10px;
+            height: 100%; /* Match analysis-frame height */
+            gap: 10px;
+        }
+
+        .sframe {
+            flex: 1; /* 25% width */
+            display: flex;
+            flex-direction: column;
+            background-color: transparent; /* Light gray */
+            border-radius: 10px;
+            gap: 10px;
+        }
+
+        .stocks-frame, .orders-frame, .delivery-frame {
+            flex: 1; /* Equal height rows */
+            background: linear-gradient(to right, #34613a, #497641);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: left;
+            flex-direction: column;
+        }
+
+        .delivery-frame {
+            flex: 1; /* Equal width columns */
+            border-radius: 10px;
+            padding: 0 0 5px 15px;
+            line-height: 1em;
+            display: flex; /* Flex display to align content if needed */
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: row;
+            line-height: 1em;
+            color: white;
+        }
+
+        .hero-frame {
+            flex: 2; /* 75% height */
+            background-color: transparent;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hero-head {
+            flex: 0.5; /* 75% height */
+            background-color: transparent;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .hero-menu {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+        }
+
+        .h-items {
+            flex: 1; /* Equal width columns */
+            background-color: white; /* A different shade for distinction */
+            border-radius: 10px;
+            padding: 0;
+            display: flex; /* Flex display to align content if needed */
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: column;
+            line-height: 1.5em;
+        }
+
+        .hero-content {
+            flex: 2; /* 75% height */
+            background-color: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .total-frame {
+            flex: 1; /* 25% height */
+            display: flex;
+            gap: 10px;
+        }
+
+        .sales1, .sales2, .sales3, .sales4 {
+            flex: 1; /* Equal width columns */
+            background-color: white; /* A different shade for distinction */
+            border-radius: 10px;
+            padding: 15px;
+            display: flex; /* Flex display to align content if needed */
+            align-items: left; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: column;
+            line-height: 1em;
+        }
+
+        .sales1 {
+            display: flex; /* Flex display to align content if needed */
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: row;
+            line-height: 1em;
+            color: white;
+        }
+
+        .sales3 {
+            display: flex; /* Flex display to align content if needed */
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: row;
+            background-color: transparent;
+            padding: 0;
+            gap: 5px;
+        }
+
+        .c-items {
+            flex: 1; /* Equal width columns */
+            background-color: white; /* A different shade for distinction */
+            border-radius: 10px;
+            padding: 2px;
+            display: flex; /* Flex display to align content if needed */
+            align-items: center; /* Center content vertically */
+            justify-content: space-evenly; /* Center content horizontally */
+            flex-direction: column;
+            line-height: 1em;
+            height: 100%;
+        }
+
+        .s-items {
+            flex: 1; /* Equal width columns */
+            background-color: white; /* A different shade for distinction */
+            border-radius: 10px;
+            padding: 3px 0 3px 15px;
+            display: flex; /* Flex display to align content if needed */
+            align-items: left; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+            flex-direction: column;
+            line-height: 1em;
+        }
+
+        #myDonutChart {
+            width: 10%; /* Fill the parent div's width */
+            height: 10%; /* Fill the parent div's height */
+            max-height: 110px; /* Set a maximum height to keep it manageable */
+            max-width: 110px;
+        }
+
+        .menu-frame {
+            display: flex;
+            height: 10%;
+            background-color: transparent;
+            border-radius: 10px;
+        }
+
+        .menu-column {
+            flex: 1;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .icon {
+            color: gray;
+        }
+
+        .icon:hover {
+            color: #fbad48;
+        }
+
+
+        .button {
+            background-color: transparent;
+            border: none;
+            padding: 5px 15px;
+            color: rgb(161, 160, 160);
+            font-size: 12px;
+            cursor: pointer;
+            margin: 0 10px;
+            text-align: center;
+            transition: background-color 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            color: white;
+        }
+
+        .das-btn i {
+            color: #fbad48;
+        }
+
+        .das-btn {
+            color: white;
+        }
+
+        .logo-card {
+            background-color: transparent;
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logo-card img {
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .menu-items {
+            background-color: transparent;
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-card {
+            background-color: transparent;
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: none;
+        }
+
+        .profile-card a {
+            color: white;
+        }
+
+        .profile-card a:hover {
+            color: #fbad48;
+        }
+
+        .analysis-frame i {
+            color: #497641;
+            font-size: 12px;
+        }
+
+        #myLineChart {
+            width: 90%; /* Fill the parent div's width */
+            height: 100%; /* Fill the parent div's height */
+            max-width: 320px;
+            max-height: 100px;
+        }
+
+        #myBarChart {
+            width: 100%; /* Fill the parent div's width */
+            height: 100px; /* Set a fixed height for the bar chart */
+            max-width: 300px;
+            max-height: 120px;
+        }
+
+        #myGraphLineChart {
+            margin: 10px;
+        }
+
+
+        .title {
+            height: 20px;
+            background-color: transparent;
+            padding: 8px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between; /* Change to space-between to position items */
+            align-items: center;
+            font-weight: bold;
+            flex-direction: row;
+            gap: 10px;
+            width: 100%;
+        }
+
+        select {
+            margin-left: auto; /* Space between inputs */
+            padding: 3px 10px; /* Reduce padding for smaller inputs */
+            border: 1px solid #888;
+            border-radius: 8px;
+            background-color: white;
+            color: black;
+            font-size: 12px; /* Font size for input */
+            font-family: 'Poppins', sans-serif;
+}
+
+    </style>
+<body>
+    <div class="container">
+        <div class="main-frame">
+            <div class="menu-frame">
+                <div class="menu-column logo-card">
+                    <img src="/public/images/logo.png" alt="Logo" style="max-height: 80%; object-fit: contain;">
+                    PDELSYS
+                </div>
+                <div class="menu-column menu-items">
+                    <a href="/admin/dashboard" class="button das-btn"><i class="fas fa-tachometer-alt"></i> DASHBOARD</a>
+                    <a href="/admin/transactions" class="button inv-btn"><i class="fas fa-box"></i> INVENTORY</a>
+                    <a href="/admin/orders" class="button dir-btn"><i class="fas fa-address-book"></i> DIRECTORY</a>
+                </div>
+                <div class="menu-column profile-card">
+                    <a href="/logout" class="button out-btn">Logout</a>
+                </div>
+            </div>
+            <div class="analysis-frame">
+                <div class="pframe">
+                    <div class="hero-frame">
+                        <div class="title">
+                            <span><p5>Welcome to your Dashboard</p5></span>
+                            <select id="filter">
+                                <option value="">Filtered By</option>
+                                <option value="upToDate">Current</option>
+                                <option value="today">Today</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div class="hero-head">
+                            <div class="hero-menu">
+                                <div class="h-items">
+                                    <p6>₱ <%= totalSales %></p6>
+                                    <p3>Total Sales &bull; <span class="emphas">+10%</span> </p3>
+                                    </div>
+                            </div>
+                            <div class="hero-menu">
+                                <div class="h-items">
+                                    <p6><%= totalOrders %></p6>
+                                    <p3>Total Transactions &bull; <span class="emphas">+10%</span> </p3>
+                                    </div>
+                            </div>
+                            <div class="hero-menu">
+                                <div class="h-items">
+                                    <p6><%= areaCovered %></p6>
+                                    <p3>Area Covered &bull; <span class="emphas">+5</span> </p3>
+                                    </div></div>
+                            <div class="hero-menu">
+                                <div class="h-items">
+                                    <p6><%= totalCustomers %></p6>
+                                    <p3>Total Customers &bull; <span class="emphas">+23</span> </p3>
+                                    </div></div>
+                        </div>
+                        <div class="hero-content">
+                            <canvas id="myGraphLineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="total-frame">
+                        
+                        
+                        <div class="sales2" style="background-color: transparent; padding: 0;">
+                            <p1></p1>
+                            <div class="s-items">
+                                <p3>Zaragoza<br> 20k &bull; <span class="emphas">59.80%</span> </p3>
+                                <p3>Zaragoza<br> 20k &bull; <span class="emphas">59.80%</span> </p3>
+                                <p3>Zaragoza<br> 20k &bull; <span class="emphas">59.80%</span> </p3>
+                            </div>
+                        </div>                    
+                        
+                        <div class="sales2" style="background-color: transparent; padding: 0;">
+                            <p1><i class="fas fa-user"></i> TOP CUSTOMERS</p1>
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 0;">
+                                    <% topCustomers.forEach(customer => { %>
+                                        <td> <div class="s-items">
+                                            <p3><%= customer.name %><br> ₱ <%= customer.totalSpent %> &bull; <span class="emphas"><%= customer.totalOrders %> Orders</span> </p3>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </table>
+                        </div>
+                        
+
+                        <div class="sales2" style="background-color: transparent; padding: 0;">
+                            <p1><i class="fas fa-map-marker-alt"></i> TOP AREAS</p1>
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 0;">
+                                    <% topAreas.forEach(area => { %>
+                                        <tr>
+                                            <td> <div class="s-items">
+                                                <p3><%= area.city %><br> ₱ <%= area.totalSales %> &bull; <span class="emphas"><%= area.totalOrders %> Orders</span> </p3>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </table>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="sframe">
+                    <div class="stocks-frame">
+                        <p1 style="color: white">SALES TRACK <span style="color: rgb(0, 255, 0); font-weight: normal;"> +34% </span></p1>
+                        <canvas id="myLineChart"></canvas>
+                    </div>
+                    
+                    <div class="delivery-frame">
+                        <canvas id="myDonutChart" style="align-self: right;"></canvas>
+                        <div class="sales1" style="background-color: transparent; padding: 0; display: flex; flex-direction: column; max-width: 100px;">
+                            <p2 style="text-align: left;">In-House <br>161k &bull; <span style="color: rgb(0, 255, 0); font-weight: normal;">81.5%</span></p2><br>
+                            <p2 style="text-align: left;">Third Party <br>38k &bull; <span style="color: rgb(0, 255, 0); font-weight: normal;">18.5%</span></p2>
+                        </div>
+                    </div>
+                    
+                    <div class="orders-frame">
+                        <p1 style="color: white">STOCKS LEVEL <span style="color: rgb(0, 255, 0); font-weight: normal;"> +34% </span></p1>
+                        <canvas id="myBarChart"></canvas>
+                    </div>
+                
+                    <div class="top-areas-frame">
+                        <p1 style="color: white">TOP AREAS SALES</p1>
+                        <div id="topAreasContainer" style="color: white;">
+                            <!-- Sales data for top areas will be injected here -->
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+<script>
+
+const ctxBar = document.getElementById('myBarChart').getContext('2d');
+const stockLabels = ['Small', 'Medium', 'Large', 'Assrtd'];
+const stockData = [60, 30, 40, 80]; // Example stock levels
+
+// Function to determine background color based on highest value
+const getBgColor = (data) => {
+    const maxValue = Math.max(...data);
+    return data.map(value => (value === maxValue ? '#fbad48' : '#fce2a0')); // Blue for max value
+};
+
+const stockLevelBarChart = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+        labels: stockLabels,
+        datasets: [{
+            label: 'Stock Level',
+            data: stockData,
+            backgroundColor: getBgColor(stockData),
+            borderRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false // Hide the legend
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    display: false // Hide y-axis quantity labels
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                        font: {
+                            size: 10, // Customize the font size for month labels
+                            family: 'poppins', // Optional: change font family
+                            style: 'normal', // Optional: change font style
+                            lineHeight: 1 // Optional: adjust line height
+                        },
+                    color: 'white', // Change color of x-axis labels if needed
+                }
+            }
+        }
+    }
+});
+
+        const ctx = document.getElementById('myDonutChart').getContext('2d');
+    
+        // Create gradient for In-house
+        const gradientInHouse = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientInHouse.addColorStop(0, '#fbad48'); // Darker start color
+        gradientInHouse.addColorStop(1, '#fbad48'); // Lighter end color
+    
+        // Create gradient for Third-party
+        const gradientThirdParty = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientThirdParty.addColorStop(0, '#fce2a0'); // Darker start color
+        gradientThirdParty.addColorStop(1, '#fce2a0'); // Lighter end color
+    
+        const myDonutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['In-house', 'Third-party'],
+                datasets: [{
+                    data: [81.5, 18.5],
+                    backgroundColor: [gradientInHouse, gradientThirdParty],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '75%',
+                plugins: {
+                    tooltip: {
+                        enabled: false
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            },
+            plugins: [{
+                afterDraw: function(chart) {
+                    const width = chart.width,
+                          height = chart.height,
+                          ctx = chart.ctx;
+    
+                    const truckImage = new Image();
+                    truckImage.src = '/public/images/logo.png'; // Replace with your image path
+    
+                    truckImage.onload = function() {
+                        const iconSize = 50; // Size of the icon
+                        const x = (width - iconSize) / 2; // Center X position
+                        const y = (height - iconSize) / 2; // Center Y position
+    
+                        ctx.drawImage(truckImage, x, y, iconSize, iconSize); // Draw the truck image
+                    };
+                }
+            }]
+        });
+    </script>
+<script>
+    // Fetch the data passed from the backend
+    const months = <%- JSON.stringify(months) %>; // Months from the backend
+    const totalRevenue = <%- JSON.stringify(totalRevenue) %>; // Total revenue from the backend
+
+    // Function to draw the bar chart
+    function drawBarChart(months, totalRevenue) {
+        const ctxBar = document.getElementById('myLineChart').getContext('2d');
+
+        // Create the bar chart
+        const myBarChart = new Chart(ctxBar, {
+            type: 'bar', // Change to 'bar' for a bar chart
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Total Revenue',
+                    data: totalRevenue,
+                    backgroundColor: 'rgba(251, 173, 72, 0.7)', // Example background color
+                    borderColor: '#fbad48', // Example border color
+                    borderWidth: 1,
+                    borderRadius: 5, // Optional: add rounded corners to the bars
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Hide the legend
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.dataset.label}: $${tooltipItem.raw}`; // Format the tooltip
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: 'white' // Change tick color
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 7.5,
+                                family: 'poppins',
+                                style: 'normal',
+                                lineHeight: 1
+                            },
+                            color: 'white' // Change label color
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Call the function to draw the chart with the fetched data
+    drawBarChart(months, totalRevenue);
+</script>
+
+  
+<script>
+    const ctxGraphLine = document.getElementById('myGraphLineChart').getContext('2d');
+    
+    // Process the orderByMonthAndSize data to separate it by size
+    const orderData = <%- JSON.stringify(orderByMonth) %>;
+
+    // Get unique months and sizes from the data
+    const uniqueMonths = [...new Set(orderData.map(order => order._id.month.toString()))]; // Ensure months are strings
+    const uniqueSizes = [...new Set(orderData.map(order => order._id.size))];
+
+    // Create an object to store total orders per size for each month
+    const sizeData = {};
+    uniqueSizes.forEach(size => {
+        sizeData[size] = uniqueMonths.map(month => {
+            const order = orderData.find(o => o._id.month.toString() === month && o._id.size === size);
+            return order ? order.totalOrders : 0; // Return 0 if no orders for that month/size
+        });
+    });
+
+    // Now create datasets for each size
+    const datasets = uniqueSizes.map(size => ({
+        label: `${size} Sold`,
+        data: sizeData[size], // Data for this size
+        borderColor: getColorForSize(size), // Assign a unique color for each size
+        backgroundColor: 'transparent',
+        fill: false,
+        borderWidth: 2,
+        tension: 0,
+        pointRadius: 3, // Show points on the graph for each order
+    }));
+
+    // Function to dynamically assign colors based on size
+    function getColorForSize(size) {
+        const colorMap = {
+            Small: 'rgba(168, 213, 186, 1)',
+            Medium: 'rgba(107, 190, 69, 1)',
+            Large: 'rgba(209, 197, 13, 1)',
+            Assorted: 'rgba(100, 149, 237, 1)', // Example color for "Assorted"
+            // Add more sizes as needed
+        };
+        return colorMap[size] || 'gray'; // Default to gray if size is unknown
+    }
+
+    // Create the line chart with the updated datasets
+    const myGraphLineChart = new Chart(ctxGraphLine, {
+        type: 'line',
+        data: {
+            labels: uniqueMonths, // Labels for the X-axis (Months)
+            datasets: datasets // Datasets for each product size
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        boxHeight: 5,
+                        boxWidth: 5,
+                        font: {
+                            family: 'Poppins',
+                            weight: 'bold',
+                        }
+                    }
+                },
+                // Optional gradient background (disabled for simplicity)
+                beforeDraw: function(chart) {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.fillStyle = gradientBackground; // Set the gradient as fill style
+                    ctx.fillRect(0, 0, chart.width, chart.height); // Fill the entire chart area
+                    ctx.restore();
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: false,
+                        text: 'Orders',
+                        font: {
+                            family: 'Poppins',
+                        }
+                    },
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Poppins',
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: false,
+                        text: 'Months',
+                        font: {
+                            family: 'Poppins',
+                        }
+                    },
+                    grid: {
+                        display: true
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Poppins',
+                        },
+                        maxRotation: 0, // Prevent rotation if space allows
+                        minRotation: 0, // Minimize rotation to make labels horizontal
+                        autoSkip: false, // Do not skip any labels
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+
+  
+
+</body>
+</html>

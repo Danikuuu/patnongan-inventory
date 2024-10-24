@@ -1,68 +1,84 @@
 const mongoose = require('mongoose');
-const Order = require('./models/orderModel'); // Adjust the path as necessary
-const Customer = require('./models/customerModel');
-const Product = require('./models/productModel');
+const Order = require('./models/orderModel');  // Adjust path as necessary
+const Customer = require('./models/customerModel');  // Adjust path for customer model
+const Product = require('./models/productModel');  // Adjust path for product model
 
 const dotenv = require('dotenv');
 dotenv.config()
 
-async function seedOrders() {
-    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('MongoDB connected');
+}).catch(err => {
+  console.error('Error connecting to MongoDB:', err);
+});
 
-    try {
-        // Clear existing orders
-        await Order.deleteMany({});
-
-        const customers = await Customer.find(); // Get all customers
-        const products = await Product.find(); // Get all products
-
-        const orders = [];
-
-        // Generate orders for each customer
-        for (const customer of customers) {
-            const numOrders = Math.floor(Math.random() * 5) + 1; // Random number of orders (1-5) for each customer
-            
-            for (let i = 0; i < numOrders; i++) {
-                // Randomly select products for the order
-                const selectedProducts = [];
-                const productCount = Math.floor(Math.random() * 3) + 1; // Random number of products (1-3)
-
-                for (let j = 0; j < productCount; j++) {
-                    const randomProduct = products[Math.floor(Math.random() * products.length)];
-                    const quantity = Math.floor(Math.random() * 5) + 1; // Random quantity (1-5)
-                    
-                    selectedProducts.push({
-                        product: randomProduct._id,
-                        quantity,
-                        size: randomProduct.size
-                    });
-                }
-
-                // Calculate total price for the order
-                const total = selectedProducts.reduce((acc, item) => {
-                    const product = products.find(p => p._id.toString() === item.product.toString());
-                    return acc + (product.price * item.quantity);
-                }, 0);
-
-                // Create an order
-                orders.push({
-                    customer: customer._id,
-                    products: selectedProducts,
-                    total: total.toFixed(2), // Format to two decimal places
-                    courier: 'LBC',
-                    placed: new Date(),
-                });
-            }
-        }
-
-        // Insert all generated orders
-        await Order.insertMany(orders);
-        console.log('Orders seeded successfully:', orders.length);
-    } catch (error) {
-        console.error('Error seeding orders:', error.message);
-    } finally {
-        mongoose.connection.close();
-    }
+// Helper function to generate random dates within a range
+function getRandomDate(start, end) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
+// Helper function to generate random data
+function getRandomElement(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Status, couriers, and sizes for randomization
+const statuses = ['pending', 'processing', 'shipped', 'delivered'];
+const couriers = ['DHL', 'FedEx', 'UPS', 'USPS'];
+const sizes = ['small', 'medium', 'large', 'extra-large'];
+
+// Seed function
+async function seedOrders() {
+  try {
+    // Fetch some customers and products
+    const customers = await Customer.find().limit(10); // Get 10 random customers
+    const products = await Product.find().limit(5);    // Get 5 random products
+
+    if (customers.length === 0 || products.length === 0) {
+      console.log('Please make sure there are customers and products in the database.');
+      return;
+    }
+
+    // Array to hold the new orders
+    const orders = [];
+
+    // Generate 100 orders
+    for (let i = 0; i < 100; i++) {
+      // Random customer and product
+      const customer = getRandomElement(customers);
+      const product = getRandomElement(products);
+
+      // Create the order object
+      const order = new Order({
+        customer: customer._id,
+        products: [{
+          product: product._id,
+          quantity: Math.floor(Math.random() * 5) + 1,  // Random quantity between 1 and 5
+          size: getRandomElement(sizes)                // Random size
+        }],
+        total: Math.floor(Math.random() * 500) + 50,    // Random total between $50 and $500
+        status: getRandomElement(statuses),             // Random status
+        courier: getRandomElement(couriers),            // Random courier
+        placed: getRandomDate(new Date(2023, 0, 1), new Date()) // Random date between Jan 1, 2023, and now
+      });
+
+      // Push the order to the array
+      orders.push(order);
+    }
+
+    // Insert all orders at once
+    await Order.insertMany(orders);
+    console.log('Seeded 100 orders successfully');
+  } catch (err) {
+    console.error('Error seeding orders:', err);
+  } finally {
+    mongoose.connection.close(); // Close the connection when done
+  }
+}
+
+// Run the seed function
 seedOrders();

@@ -184,6 +184,10 @@
                         <p2>Patnongan Delivery Inventory System</p2>
                     </div>
                     
+                    <% if (error) { %>
+                        <p style="color:red;"><%= error %></p>
+                      <% } %>
+
                     <form id="loginForm" action="/login" method="POST">
                         <div class="row"><div class="field"></div></div>
                         <div class="row">

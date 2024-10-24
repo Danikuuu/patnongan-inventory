@@ -464,6 +464,68 @@ select {
             background: #777; /* Color of the scrollbar thumb on hover */
         }
 
+        .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.pagination a, 
+.pagination span {
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #497641;
+    font-weight: bold;
+}
+
+.pagination a:hover {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination span {
+    background-color: #497641;
+    color: white;
+    border-color: #497641;
+}
+
+.pagination a:active {
+    background-color: #5da850;
+    color: white;
+    border-color: #5da850;
+}
+
+/* toast */
+
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 17px;
+    transition: opacity 0.5s, bottom 0.5s ease-in-out;
+    opacity: 0;
+}
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
+
     </style>
 </head>
 <body>
@@ -480,7 +542,7 @@ select {
                     <a href="/admin/orders" class="button dir-btn"><i class="fas fa-address-book"></i> DIRECTORY</a>
                 </div>
                 <div class="menu-column profile-card">
-                    <a href="/" class="button out-btn">Logout</a>
+                    <a href="/logout" class="button out-btn">Logout</a>
                 </div>
             </div>
             <div class="analysis-frame">
@@ -519,7 +581,7 @@ select {
                                 <th>CUSTOMER NAME</th>
                                 <th>ADDRESS</th>
                                 <th>PURCHASE</th>
-                                <th colspan="2">ACTIONS</th>
+                                <th colspan="2">ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -544,31 +606,340 @@ select {
                         
                                     <td>
                                         <button class="btn btn-update" 
-                                                onclick="openEditModal(
-                                                    '<%= customerSummary.customer._id %>', 
-                                                    '<%= customerSummary.customer.first_name %>', 
-                                                    '<%= customerSummary.customer.last_name %>', 
-                                                    '<%= customerSummary.customer.phone %>', 
-                                                    '<%= customerSummary.customer.email %>', 
-                                                    '<%= customerSummary.customer.city %>', 
-                                                    '<%= customerSummary.customer.province %>', 
-                                                    '<%= customerSummary.customer.street_address %>', 
-                                                    '<%= customerSummary.customer.postal_code %>'
-                                                )">
-                                            <i class="fas fa-pen icon"></i>
-                                        </button>
+                                            onclick="openEditModal(
+                                                '<%= customerSummary.lastOrderId %>',  // Change here to use lastOrderId
+                                                '<%= customerSummary.customer.first_name %>', 
+                                                '<%= customerSummary.customer.last_name %>', 
+                                                '<%= customerSummary.customer.phone %>', 
+                                                '<%= customerSummary.customer.email %>', 
+                                                '<%= customerSummary.customer.city %>', 
+                                                '<%= customerSummary.customer.province %>', 
+                                                '<%= customerSummary.customer.street_address %>', 
+                                                '<%= customerSummary.customer.postal_code %>'
+                                            )">
+                                        <i class="fas fa-pen icon"></i>
+                                    </button>
                                     </td>
+                                    <div class="modal" id="editModal">
+                                        <div class="modal-content">
+                                            <div class="title-frame">
+                                                <p class="exitbtn" onclick="closeModal()"><i class="fas fa-arrow-left"></i></p>
+                                                <span>UPDATE RECORD</span>
+                                            </div>
+                                            <form id="editForm" action="/admin/editOrder/<%= customerSummary.lastOrderId %>" method="POST" >
+                                                <input type="hidden" id="editId">
+                                                <div class="row">
+                                                    <div class="field">
+                                                        <label>First Name</label>
+                                                        <input type="text" id="editFirstName"name="first_name" placeholder="" required>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>Last Name</label>
+                                                        <input type="text" id="editLastName" name="last_name" placeholder="" required>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="field">
+                                                        <label>Contact Number</label>
+                                                        <input type="text" id="editContact" name="phone" placeholder="" required>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>Email Address</label>
+                                                        <input type="email" id="editEmail" name="email" placeholder="" required>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="field">
+                                                        <label>City</label>
+                                                    <select id="city" name="city" required>
+                                                        <option value="">Select City</option>
+                                                        <option value="Alaminos">Alaminos</option>
+                                                        <option value="Amadeo">Amadeo</option>
+                                                        <option value="Angeles">Angeles</option>
+                                                        <option value="Antipolo">Antipolo</option>
+                                                        <option value="Bacoor">Bacoor</option>
+                                                        <option value="Bacolod">Bacolod</option>
+                                                        <option value="Baguio">Baguio</option>
+                                                        <option value="Bago">Bago</option>
+                                                        <option value="Bais">Bais</option>
+                                                        <option value="Balanga">Balanga</option>
+                                                        <option value="Batac">Batac</option>
+                                                        <option value="Batangas City">Batangas City</option>
+                                                        <option value="Bayawan">Bayawan</option>
+                                                        <option value="Baybay">Baybay</option>
+                                                        <option value="Bayugan">Bayugan</option>
+                                                        <option value="Biñan">Biñan</option>
+                                                        <option value="Bislig">Bislig</option>
+                                                        <option value="Bogo">Bogo</option>
+                                                        <option value="Borongan">Borongan</option>
+                                                        <option value="Butuan">Butuan</option>
+                                                        <option value="Cabadbaran">Cabadbaran</option>
+                                                        <option value="Cabanatuan">Cabanatuan</option>
+                                                        <option value="Cabuyao">Cabuyao</option>
+                                                        <option value="Cadiz">Cadiz</option>
+                                                        <option value="Calamba">Calamba</option>
+                                                        <option value="Calapan">Calapan</option>
+                                                        <option value="Calbayog">Calbayog</option>
+                                                        <option value="Candon">Candon</option>
+                                                        <option value="Canlaon">Canlaon</option>
+                                                        <option value="Carcar">Carcar</option>
+                                                        <option value="Catbalogan">Catbalogan</option>
+                                                        <option value="Cauayan">Cauayan</option>
+                                                        <option value="Cebu City">Cebu City</option>
+                                                        <option value="Caloocan">Caloocan</option>
+                                                        <option value="Dagupan">Dagupan</option>
+                                                        <option value="Danao">Danao</option>
+                                                        <option value="Dapitan">Dapitan</option>
+                                                        <option value="Dasmariñas">Dasmariñas</option>
+                                                        <option value="Digos">Digos</option>
+                                                        <option value="Dipolog">Dipolog</option>
+                                                        <option value="Dumaguete">Dumaguete</option>
+                                                        <option value="El Salvador">El Salvador</option>
+                                                        <option value="Escalante">Escalante</option>
+                                                        <option value="Gapan">Gapan</option>
+                                                        <option value="General Santos">General Santos</option>
+                                                        <option value="General Trias">General Trias</option>
+                                                        <option value="Gingoog">Gingoog</option>
+                                                        <option value="Guihulngan">Guihulngan</option>
+                                                        <option value="Himamaylan">Himamaylan</option>
+                                                        <option value="Ilagan">Ilagan</option>
+                                                        <option value="Imus">Imus</option>
+                                                        <option value="Iriga">Iriga</option>
+                                                        <option value="Isabela City">Isabela City</option>
+                                                        <option value="Kabankalan">Kabankalan</option>
+                                                        <option value="Kidapawan">Kidapawan</option>
+                                                        <option value="Koronadal">Koronadal</option>
+                                                        <option value="La Carlota">La Carlota</option>
+                                                        <option value="Lamitan">Lamitan</option>
+                                                        <option value="Laoag">Laoag</option>
+                                                        <option value="Legazpi">Legazpi</option>
+                                                        <option value="Ligao">Ligao</option>
+                                                        <option value="Lipa">Lipa</option>
+                                                        <option value="Lapu-Lapu">Lapu-Lapu</option>
+                                                        <option value="Las Piñas">Las Piñas</option>
+                                                        <option value="Lucena">Lucena</option>
+                                                        <option value="Mabalacat">Mabalacat</option>
+                                                        <option value="Maasin">Maasin</option>
+                                                        <option value="Malabon">Malabon</option>
+                                                        <option value="Malolos">Malolos</option>
+                                                        <option value="Makati">Makati</option>
+                                                        <option value="Marawi">Marawi</option>
+                                                        <option value="Marikina">Marikina</option>
+                                                        <option value="Mati">Mati</option>
+                                                        <option value="Meycauayan">Meycauayan</option>
+                                                        <option value="Muñoz">Muñoz</option>
+                                                        <option value="Muntinlupa">Muntinlupa</option>
+                                                        <option value="Navotas">Navotas</option>
+                                                        <option value="Naga">Naga</option>
+                                                        <option value="Olongapo">Olongapo</option>
+                                                        <option value="Ormoc">Ormoc</option>
+                                                        <option value="Ozamiz">Ozamiz</option>
+                                                        <option value="Pagadian">Pagadian</option>
+                                                        <option value="Palayan">Palayan</option>
+                                                        <option value="Panabo">Panabo</option>
+                                                        <option value="Passi">Passi</option>
+                                                        <option value="Pasay">Pasay</option>
+                                                        <option value="Pasig">Pasig</option>
+                                                        <option value="Puerto Princesa">Puerto Princesa</option>
+                                                        <option value="Quezon City">Quezon City</option>
+                                                        <option value="Roxas City">Roxas City</option>
+                                                        <option value="Sagay">Sagay</option>
+                                                        <option value="Samal">Samal</option>
+                                                        <option value="San Carlos">San Carlos</option>
+                                                        <option value="San Fernando">San Fernando</option>
+                                                        <option value="San Jose">San Jose</option>
+                                                        <option value="San Jose del Monte">San Jose del Monte</option>
+                                                        <option value="San Juan">San Juan</option>
+                                                        <option value="San Pablo">San Pablo</option>
+                                                        <option value="San Pedro">San Pedro</option>
+                                                        <option value="Santa Rosa">Santa Rosa</option>
+                                                        <option value="Santo Tomas">Santo Tomas</option>
+                                                        <option value="Silay">Silay</option>
+                                                        <option value="Sipalay">Sipalay</option>
+                                                        <option value="Sorsogon City">Sorsogon City</option>
+                                                        <option value="Surigao City">Surigao City</option>
+                                                        <option value="Tabaco">Tabaco</option>
+                                                        <option value="Tabuk">Tabuk</option>
+                                                        <option value="Tacloban">Tacloban</option>
+                                                        <option value="Tacurong">Tacurong</option>
+                                                        <option value="Tagaytay">Tagaytay</option>
+                                                        <option value="Tagbilaran">Tagbilaran</option>
+                                                        <option value="Tagum">Tagum</option>
+                                                        <option value="Talisay">Talisay</option>
+                                                        <option value="Tanauan">Tanauan</option>
+                                                        <option value="Tandag">Tandag</option>
+                                                        <option value="Tangub">Tangub</option>
+                                                        <option value="Tanjay">Tanjay</option>
+                                                        <option value="Tarlac City">Tarlac City</option>
+                                                        <option value="Tayabas">Tayabas</option>
+                                                        <option value="Toledo">Toledo</option>
+                                                        <option value="Trece Martires">Trece Martires</option>
+                                                        <option value="Tuguegarao">Tuguegarao</option>
+                                                        <option value="Urdaneta">Urdaneta</option>
+                                                        <option value="Valenzuela">Valenzuela</option>
+                                                        <option value="Valencia">Valencia</option>
+                                                        <option value="Victorias">Victorias</option>
+                                                        <option value="Vigan">Vigan</option>
+                                                        <option value="Zamboanga City">Zamboanga City</option>
+                                                    </select>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>Province</label>
+                                                <select id="province" name="province" required>
+                                                    <option value="">Select Province</option>
+                                                    <option value="Abra">Abra</option>
+                                                    <option value="Agusan del Norte">Agusan del Norte</option>
+                                                    <option value="Agusan del Sur">Agusan del Sur</option>
+                                                    <option value="Aklan">Aklan</option>
+                                                    <option value="Albay">Albay</option>
+                                                    <option value="Antique">Antique</option>
+                                                    <option value="Apayao">Apayao</option>
+                                                    <option value="Aurora">Aurora</option>
+                                                    <option value="Basilan">Basilan</option>
+                                                    <option value="Bataan">Bataan</option>
+                                                    <option value="Batanes">Batanes</option>
+                                                    <option value="Batangas">Batangas</option>
+                                                    <option value="Benguet">Benguet</option>
+                                                    <option value="Biliran">Biliran</option>
+                                                    <option value="Bohol">Bohol</option>
+                                                    <option value="Bukidnon">Bukidnon</option>
+                                                    <option value="Bulacan">Bulacan</option>
+                                                    <option value="Cagayan">Cagayan</option>
+                                                    <option value="Camarines Norte">Camarines Norte</option>
+                                                    <option value="Camarines Sur">Camarines Sur</option>
+                                                    <option value="Camiguin">Camiguin</option>
+                                                    <option value="Capiz">Capiz</option>
+                                                    <option value="Catanduanes">Catanduanes</option>
+                                                    <option value="Cavite">Cavite</option>
+                                                    <option value="Cebu">Cebu</option>
+                                                    <option value="Cotabato">Cotabato</option>
+                                                    <option value="Davao de Oro">Davao de Oro (Compostela Valley)</option>
+                                                    <option value="Davao del Norte">Davao del Norte</option>
+                                                    <option value="Davao del Sur">Davao del Sur</option>
+                                                    <option value="Davao Occidental">Davao Occidental</option>
+                                                    <option value="Davao Oriental">Davao Oriental</option>
+                                                    <option value="Dinagat Islands">Dinagat Islands</option>
+                                                    <option value="Eastern Samar">Eastern Samar</option>
+                                                    <option value="Guimaras">Guimaras</option>
+                                                    <option value="Ifugao">Ifugao</option>
+                                                    <option value="Ilocos Norte">Ilocos Norte</option>
+                                                    <option value="Ilocos Sur">Ilocos Sur</option>
+                                                    <option value="Iloilo">Iloilo</option>
+                                                    <option value="Isabela">Isabela</option>
+                                                    <option value="Kalinga">Kalinga</option>
+                                                    <option value="La Union">La Union</option>
+                                                    <option value="Laguna">Laguna</option>
+                                                    <option value="Lanao del Norte">Lanao del Norte</option>
+                                                    <option value="Lanao del Sur">Lanao del Sur</option>
+                                                    <option value="Leyte">Leyte</option>
+                                                    <option value="Maguindanao del Norte">Maguindanao del Norte</option>
+                                                    <option value="Maguindanao del Sur">Maguindanao del Sur</option>
+                                                    <option value="Marinduque">Marinduque</option>
+                                                    <option value="Masbate">Masbate</option>
+                                                    <option value="Misamis Occidental">Misamis Occidental</option>
+                                                    <option value="Misamis Oriental">Misamis Oriental</option>
+                                                    <option value="Mountain Province">Mountain Province</option>
+                                                    <option value="Negros Occidental">Negros Occidental</option>
+                                                    <option value="Negros Oriental">Negros Oriental</option>
+                                                    <option value="Northern Samar">Northern Samar</option>
+                                                    <option value="Nueva Ecija">Nueva Ecija</option>
+                                                    <option value="Nueva Vizcaya">Nueva Vizcaya</option>
+                                                    <option value="Occidental Mindoro">Occidental Mindoro</option>
+                                                    <option value="Oriental Mindoro">Oriental Mindoro</option>
+                                                    <option value="Palawan">Palawan</option>
+                                                    <option value="Pampanga">Pampanga</option>
+                                                    <option value="Pangasinan">Pangasinan</option>
+                                                    <option value="Quezon">Quezon</option>
+                                                    <option value="Quirino">Quirino</option>
+                                                    <option value="Rizal">Rizal</option>
+                                                    <option value="Romblon">Romblon</option>
+                                                    <option value="Samar">Samar</option>
+                                                    <option value="Sarangani">Sarangani</option>
+                                                    <option value="Siquijor">Siquijor</option>
+                                                    <option value="Sorsogon">Sorsogon</option>
+                                                    <option value="South Cotabato">South Cotabato</option>
+                                                    <option value="Southern Leyte">Southern Leyte</option>
+                                                    <option value="Sultan Kudarat">Sultan Kudarat</option>
+                                                    <option value="Sulu">Sulu</option>
+                                                    <option value="Surigao del Norte">Surigao del Norte</option>
+                                                    <option value="Surigao del Sur">Surigao del Sur</option>
+                                                    <option value="Tarlac">Tarlac</option>
+                                                    <option value="Tawi-Tawi">Tawi-Tawi</option>
+                                                    <option value="Zambales">Zambales</option>
+                                                    <option value="Zamboanga del Norte">Zamboanga del Norte</option>
+                                                    <option value="Zamboanga del Sur">Zamboanga del Sur</option>
+                                                    <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
+                                                </select>
+                                                </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="field">
+                                                        <label>Street & Barangay</label>
+                                                        <input type="text" id="editStreetAddress" placeholder="" required name="street_address">
+                                                    </div>
+                                                    <div class="field">
+                                                        <label>Postal Code</label>
+                                                        <input type="text" id="editPostalCode" placeholder="" required name="postal_code">
+                                                    </div>
+                                                </div>
+                                                <div class="form-buttons">
+                                                    <button type="reset" class="clrbtn">CLEAR</button>
+                                                    <button type="submit" class="newbtn">SAVE</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        function openEditModal(id, firstName, lastName, contact, email, city, province, streetAddress, postalCode) {
+    
+    document.getElementById('editId').value = id;
+    document.getElementById('editFirstName').value = firstName;
+    document.getElementById('editLastName').value = lastName;
+    document.getElementById('editContact').value = contact;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('city').value = city;
+    document.getElementById('province').value = province;
+    document.getElementById('editStreetAddress').value = streetAddress;
+    document.getElementById('editPostalCode').value = postalCode;
+
+    // Open modal
+    document.getElementById('editModal').style.display = 'block';
+}
+
+// Close modal
+    function closeaddModal() {
+        document.getElementById('modal-create').style.display = 'none';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('editForm').reset(); // Reset form fields
+    }
+                                    </script>
                                     <td>
-                                        <form action="/customers/<%= customerSummary.customer._id %>?_method=DELETE" method="POST" style="margin: 0;">
-                                            <button type="submit" class="btn btn-danger">
-                                                <i class="fas fa-trash-alt icon"></i>
-                                            </button>
-                                        </form>
                                     </td>
                                 </tr>
                             <% }) %>
                         </tbody>                      
                     </table>
+                    <div class="pagination">
+                        <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
+                        <% } %>
+                        
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <span><%= i %></span> <!-- Current page, no link -->
+                            <% } else { %>
+                                <a href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                            <% } %>
+                        <% } %>
+                        
+                        <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
+                        <% } %>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -848,6 +1219,20 @@ select {
             </main>
         </div>
     </div>
+    <% if (success) { %>
+        <div id="toast" class="toast"><%= success %></div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const toast = document.getElementById('toast');
+                toast.className = "toast show";
+                setTimeout(function() {
+                    toast.className = toast.className.replace("show", "");
+                }, 3000); // Hide toast after 3 seconds
+            });
+        </script>
+        <% } %>
+
+    </script>
     <script>
         document.getElementById("create").onclick = function() {
             document.getElementById("modal-create").style.display = "block";
@@ -864,360 +1249,69 @@ select {
         };
     </script>
     
-
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <div class="title-frame">
-                <a href="/customers" class="exitbtn" onclick="closeModal()"><i class="fas fa-arrow-left"></i></a>
-                <span>UPDATE RECORD</span>
-            </div>
-            <form id="editForm" onsubmit="submitEdit(event)">
-                <input type="hidden" id="editId">
-                <div class="row">
-                    <div class="field">
-                        <label>First Name</label>
-                        <input type="text" id="editFirstName" placeholder="">
-                    </div>
-                    <div class="field">
-                        <label>Last Name</label>
-                        <input type="text" id="editLastName" placeholder="">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="field">
-                        <label>Contact Number</label>
-                        <input type="text" id="editContact" placeholder="">
-                    </div>
-                    <div class="field">
-                        <label>Email Address</label>
-                        <input type="email" id="editEmail" placeholder="">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="field">
-                        <label>City</label>
-                    <select id="city" name="city" required>
-                        <option value="">Select City</option>
-                        <option value="Alaminos">Alaminos</option>
-                        <option value="Amadeo">Amadeo</option>
-                        <option value="Angeles">Angeles</option>
-                        <option value="Antipolo">Antipolo</option>
-                        <option value="Bacoor">Bacoor</option>
-                        <option value="Bacolod">Bacolod</option>
-                        <option value="Baguio">Baguio</option>
-                        <option value="Bago">Bago</option>
-                        <option value="Bais">Bais</option>
-                        <option value="Balanga">Balanga</option>
-                        <option value="Batac">Batac</option>
-                        <option value="Batangas City">Batangas City</option>
-                        <option value="Bayawan">Bayawan</option>
-                        <option value="Baybay">Baybay</option>
-                        <option value="Bayugan">Bayugan</option>
-                        <option value="Biñan">Biñan</option>
-                        <option value="Bislig">Bislig</option>
-                        <option value="Bogo">Bogo</option>
-                        <option value="Borongan">Borongan</option>
-                        <option value="Butuan">Butuan</option>
-                        <option value="Cabadbaran">Cabadbaran</option>
-                        <option value="Cabanatuan">Cabanatuan</option>
-                        <option value="Cabuyao">Cabuyao</option>
-                        <option value="Cadiz">Cadiz</option>
-                        <option value="Calamba">Calamba</option>
-                        <option value="Calapan">Calapan</option>
-                        <option value="Calbayog">Calbayog</option>
-                        <option value="Candon">Candon</option>
-                        <option value="Canlaon">Canlaon</option>
-                        <option value="Carcar">Carcar</option>
-                        <option value="Catbalogan">Catbalogan</option>
-                        <option value="Cauayan">Cauayan</option>
-                        <option value="Cebu City">Cebu City</option>
-                        <option value="Caloocan">Caloocan</option>
-                        <option value="Dagupan">Dagupan</option>
-                        <option value="Danao">Danao</option>
-                        <option value="Dapitan">Dapitan</option>
-                        <option value="Dasmariñas">Dasmariñas</option>
-                        <option value="Digos">Digos</option>
-                        <option value="Dipolog">Dipolog</option>
-                        <option value="Dumaguete">Dumaguete</option>
-                        <option value="El Salvador">El Salvador</option>
-                        <option value="Escalante">Escalante</option>
-                        <option value="Gapan">Gapan</option>
-                        <option value="General Santos">General Santos</option>
-                        <option value="General Trias">General Trias</option>
-                        <option value="Gingoog">Gingoog</option>
-                        <option value="Guihulngan">Guihulngan</option>
-                        <option value="Himamaylan">Himamaylan</option>
-                        <option value="Ilagan">Ilagan</option>
-                        <option value="Imus">Imus</option>
-                        <option value="Iriga">Iriga</option>
-                        <option value="Isabela City">Isabela City</option>
-                        <option value="Kabankalan">Kabankalan</option>
-                        <option value="Kidapawan">Kidapawan</option>
-                        <option value="Koronadal">Koronadal</option>
-                        <option value="La Carlota">La Carlota</option>
-                        <option value="Lamitan">Lamitan</option>
-                        <option value="Laoag">Laoag</option>
-                        <option value="Legazpi">Legazpi</option>
-                        <option value="Ligao">Ligao</option>
-                        <option value="Lipa">Lipa</option>
-                        <option value="Lapu-Lapu">Lapu-Lapu</option>
-                        <option value="Las Piñas">Las Piñas</option>
-                        <option value="Lucena">Lucena</option>
-                        <option value="Mabalacat">Mabalacat</option>
-                        <option value="Maasin">Maasin</option>
-                        <option value="Malabon">Malabon</option>
-                        <option value="Malolos">Malolos</option>
-                        <option value="Makati">Makati</option>
-                        <option value="Marawi">Marawi</option>
-                        <option value="Marikina">Marikina</option>
-                        <option value="Mati">Mati</option>
-                        <option value="Meycauayan">Meycauayan</option>
-                        <option value="Muñoz">Muñoz</option>
-                        <option value="Muntinlupa">Muntinlupa</option>
-                        <option value="Navotas">Navotas</option>
-                        <option value="Naga">Naga</option>
-                        <option value="Olongapo">Olongapo</option>
-                        <option value="Ormoc">Ormoc</option>
-                        <option value="Ozamiz">Ozamiz</option>
-                        <option value="Pagadian">Pagadian</option>
-                        <option value="Palayan">Palayan</option>
-                        <option value="Panabo">Panabo</option>
-                        <option value="Passi">Passi</option>
-                        <option value="Pasay">Pasay</option>
-                        <option value="Pasig">Pasig</option>
-                        <option value="Puerto Princesa">Puerto Princesa</option>
-                        <option value="Quezon City">Quezon City</option>
-                        <option value="Roxas City">Roxas City</option>
-                        <option value="Sagay">Sagay</option>
-                        <option value="Samal">Samal</option>
-                        <option value="San Carlos">San Carlos</option>
-                        <option value="San Fernando">San Fernando</option>
-                        <option value="San Jose">San Jose</option>
-                        <option value="San Jose del Monte">San Jose del Monte</option>
-                        <option value="San Juan">San Juan</option>
-                        <option value="San Pablo">San Pablo</option>
-                        <option value="San Pedro">San Pedro</option>
-                        <option value="Santa Rosa">Santa Rosa</option>
-                        <option value="Santo Tomas">Santo Tomas</option>
-                        <option value="Silay">Silay</option>
-                        <option value="Sipalay">Sipalay</option>
-                        <option value="Sorsogon City">Sorsogon City</option>
-                        <option value="Surigao City">Surigao City</option>
-                        <option value="Tabaco">Tabaco</option>
-                        <option value="Tabuk">Tabuk</option>
-                        <option value="Tacloban">Tacloban</option>
-                        <option value="Tacurong">Tacurong</option>
-                        <option value="Tagaytay">Tagaytay</option>
-                        <option value="Tagbilaran">Tagbilaran</option>
-                        <option value="Tagum">Tagum</option>
-                        <option value="Talisay">Talisay</option>
-                        <option value="Tanauan">Tanauan</option>
-                        <option value="Tandag">Tandag</option>
-                        <option value="Tangub">Tangub</option>
-                        <option value="Tanjay">Tanjay</option>
-                        <option value="Tarlac City">Tarlac City</option>
-                        <option value="Tayabas">Tayabas</option>
-                        <option value="Toledo">Toledo</option>
-                        <option value="Trece Martires">Trece Martires</option>
-                        <option value="Tuguegarao">Tuguegarao</option>
-                        <option value="Urdaneta">Urdaneta</option>
-                        <option value="Valenzuela">Valenzuela</option>
-                        <option value="Valencia">Valencia</option>
-                        <option value="Victorias">Victorias</option>
-                        <option value="Vigan">Vigan</option>
-                        <option value="Zamboanga City">Zamboanga City</option>
-                    </select>
-                    </div>
-                    <div class="field">
-                        <label>Province</label>
-                <select id="province" name="province" required>
-                    <option value="">Select Province</option>
-                    <option value="Abra">Abra</option>
-                    <option value="Agusan del Norte">Agusan del Norte</option>
-                    <option value="Agusan del Sur">Agusan del Sur</option>
-                    <option value="Aklan">Aklan</option>
-                    <option value="Albay">Albay</option>
-                    <option value="Antique">Antique</option>
-                    <option value="Apayao">Apayao</option>
-                    <option value="Aurora">Aurora</option>
-                    <option value="Basilan">Basilan</option>
-                    <option value="Bataan">Bataan</option>
-                    <option value="Batanes">Batanes</option>
-                    <option value="Batangas">Batangas</option>
-                    <option value="Benguet">Benguet</option>
-                    <option value="Biliran">Biliran</option>
-                    <option value="Bohol">Bohol</option>
-                    <option value="Bukidnon">Bukidnon</option>
-                    <option value="Bulacan">Bulacan</option>
-                    <option value="Cagayan">Cagayan</option>
-                    <option value="Camarines Norte">Camarines Norte</option>
-                    <option value="Camarines Sur">Camarines Sur</option>
-                    <option value="Camiguin">Camiguin</option>
-                    <option value="Capiz">Capiz</option>
-                    <option value="Catanduanes">Catanduanes</option>
-                    <option value="Cavite">Cavite</option>
-                    <option value="Cebu">Cebu</option>
-                    <option value="Cotabato">Cotabato</option>
-                    <option value="Davao de Oro">Davao de Oro (Compostela Valley)</option>
-                    <option value="Davao del Norte">Davao del Norte</option>
-                    <option value="Davao del Sur">Davao del Sur</option>
-                    <option value="Davao Occidental">Davao Occidental</option>
-                    <option value="Davao Oriental">Davao Oriental</option>
-                    <option value="Dinagat Islands">Dinagat Islands</option>
-                    <option value="Eastern Samar">Eastern Samar</option>
-                    <option value="Guimaras">Guimaras</option>
-                    <option value="Ifugao">Ifugao</option>
-                    <option value="Ilocos Norte">Ilocos Norte</option>
-                    <option value="Ilocos Sur">Ilocos Sur</option>
-                    <option value="Iloilo">Iloilo</option>
-                    <option value="Isabela">Isabela</option>
-                    <option value="Kalinga">Kalinga</option>
-                    <option value="La Union">La Union</option>
-                    <option value="Laguna">Laguna</option>
-                    <option value="Lanao del Norte">Lanao del Norte</option>
-                    <option value="Lanao del Sur">Lanao del Sur</option>
-                    <option value="Leyte">Leyte</option>
-                    <option value="Maguindanao del Norte">Maguindanao del Norte</option>
-                    <option value="Maguindanao del Sur">Maguindanao del Sur</option>
-                    <option value="Marinduque">Marinduque</option>
-                    <option value="Masbate">Masbate</option>
-                    <option value="Misamis Occidental">Misamis Occidental</option>
-                    <option value="Misamis Oriental">Misamis Oriental</option>
-                    <option value="Mountain Province">Mountain Province</option>
-                    <option value="Negros Occidental">Negros Occidental</option>
-                    <option value="Negros Oriental">Negros Oriental</option>
-                    <option value="Northern Samar">Northern Samar</option>
-                    <option value="Nueva Ecija">Nueva Ecija</option>
-                    <option value="Nueva Vizcaya">Nueva Vizcaya</option>
-                    <option value="Occidental Mindoro">Occidental Mindoro</option>
-                    <option value="Oriental Mindoro">Oriental Mindoro</option>
-                    <option value="Palawan">Palawan</option>
-                    <option value="Pampanga">Pampanga</option>
-                    <option value="Pangasinan">Pangasinan</option>
-                    <option value="Quezon">Quezon</option>
-                    <option value="Quirino">Quirino</option>
-                    <option value="Rizal">Rizal</option>
-                    <option value="Romblon">Romblon</option>
-                    <option value="Samar">Samar</option>
-                    <option value="Sarangani">Sarangani</option>
-                    <option value="Siquijor">Siquijor</option>
-                    <option value="Sorsogon">Sorsogon</option>
-                    <option value="South Cotabato">South Cotabato</option>
-                    <option value="Southern Leyte">Southern Leyte</option>
-                    <option value="Sultan Kudarat">Sultan Kudarat</option>
-                    <option value="Sulu">Sulu</option>
-                    <option value="Surigao del Norte">Surigao del Norte</option>
-                    <option value="Surigao del Sur">Surigao del Sur</option>
-                    <option value="Tarlac">Tarlac</option>
-                    <option value="Tawi-Tawi">Tawi-Tawi</option>
-                    <option value="Zambales">Zambales</option>
-                    <option value="Zamboanga del Norte">Zamboanga del Norte</option>
-                    <option value="Zamboanga del Sur">Zamboanga del Sur</option>
-                    <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
-                </select>
-                </div>
-                </div>
-                <div class="row">
-                    <div class="field">
-                        <label>Street & Barangay</label>
-                        <input type="text" id="editStreetAddress" placeholder="">
-                    </div>
-                    <div class="field">
-                        <label>Postal Code</label>
-                        <input type="text" id="editPostalCode" placeholder="">
-                    </div>
-                </div>
-                <div class="form-buttons">
-                    <button type="reset" class="clrbtn">CLEAR</button>
-                    <button type="submit" class="newbtn">SAVE</button>
-                </div>
-            </form>
-        </div>
-    </div>
     
     
     <script>
-function openEditModal(id, firstName, lastName, contact, email, city, province, streetAddress, postalCode) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editFirstName').value = firstName;
-    document.getElementById('editLastName').value = lastName;
-    document.getElementById('editContact').value = contact;
-    document.getElementById('editEmail').value = email;
-    document.getElementById('editCity').value = city;
-    document.getElementById('editProvince').value = province; // Correctly set the province
-    document.getElementById('editStreetAddress').value = streetAddress;
-    document.getElementById('editPostalCode').value = postalCode;
-
-    // Open modal
-    document.getElementById('editModal').style.display = 'block';
-}
-
-// Close modal
-function closeModal() {
-    document.getElementById('editModal').style.display = 'none';
-}
 
     
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
+//     function submitEdit(event) {
+//     event.preventDefault(); // Prevent default form submission
 
-    function closeaddModal() {
-        document.getElementById('modal-create').style.display = 'none';
-    }
+//     // Get values from the input fields
+//     const id = document.getElementById('editId').value;
+//     const firstName = document.getElementById('editFirstName').value.trim();
+//     const lastName = document.getElementById('editLastName').value.trim();
+//     const contact = document.getElementById('editContact').value.trim();
+//     const email = document.getElementById('editEmail').value.trim();
+//     const city = document.getElementById('city').value;
+//     const province = document.getElementById('province').value;
+//     const streetAddress = document.getElementById('editStreetAddress').value.trim();
+//     const postalCode = document.getElementById('editPostalCode').value.trim();
 
-    function submitEdit(event) {
-    event.preventDefault(); // Prevent default form submission
+//     // Validate input fields
+//     if (!firstName || !lastName || !contact || !email || !city || !province || !streetAddress || !postalCode) {
+//         alert('Please fill out all fields.');
+//         return;
+//     }
 
-    // Get values from the input fields
-    const id = document.getElementById('editId').value;
-    const firstName = document.getElementById('editFirstName').value;
-    const lastName = document.getElementById('editLastName').value;
-    const contact = document.getElementById('editContact').value;
-    const email = document.getElementById('editEmail').value;
-    const city = document.getElementById('editCity').value;
-    const province = document.getElementById('editProvince').value;
-    const streetAddress = document.getElementById('editStreetAddress').value;
-    const postalCode = document.getElementById('editPostalCode').value;
+//     // Create an object with the data to be sent
+//     const data = {
+//         first_name: firstName,
+//         last_name: lastName,
+//         contact_number: contact,
+//         email_address: email,
+//         city: city,
+//         province: province,
+//         street_address: streetAddress,
+//         postal_code: postalCode,
+//     };
 
-    // Create an object with the data to be sent
-    const data = {
-        first_name: firstName,
-        last_name: lastName,
-        contact_number: contact,
-        email_address: email,
-        city: city,
-        province: province,
-        street_address: streetAddress,
-        postal_code: postalCode,
-    };
-
-    // Make an AJAX request to update the user
-    fetch(`/customers/update/${id}`, {
-        method: 'PUT', // or 'POST' depending on your server setup
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-    })
-    .then(response => {
-        if (response.ok) {
-            // Optionally, handle success (e.g., close modal, refresh data)
-            alert('Record updated successfully');
-            location.reload(); // Refresh the page or update the UI accordingly
-        } else {
-            // Handle error response
-            alert('Failed to update record. Please try again.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again later.');
-    });
-}
+//     // Make an AJAX request to update the user
+//     fetch(`/customers/update/${id}`, {
+//         method: 'PUT',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(data),
+//     })
+//     .then(response => {
+//         if (response.ok) {
+//             alert('Record updated successfully');
+//             location.reload(); // Refresh the page or update the UI accordingly
+//         } else {
+//             alert('Failed to update record. Please try again.');
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alert('An error occurred. Please try again later.');
+//     });
+// }
 
     </script>
-<script>
+
+    
+<!-- <script>
     // Assuming 'customers' is your array of customer objects
     customers.sort((a, b) => {
         const firstNameA = a.first_name.toLowerCase();
@@ -1232,7 +1326,7 @@ function closeModal() {
         const lastNameB = b.last_name.toLowerCase();
         return lastNameA.localeCompare(lastNameB);
     });
-</script>
+</script> -->
 
 
 </body>
