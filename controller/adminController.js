@@ -200,7 +200,7 @@ exports.displayDashBoard = async (req, res) => {
 
         const salesByMonth = await Order.aggregate([
             {
-                $group: {
+                $group: { 
                     _id: { $dateToString: { format: "%Y-%m", date: "$placed" } },
                     totalSales: { $sum: "$total" }
                 }
@@ -227,7 +227,7 @@ exports.displayDashBoard = async (req, res) => {
 
         res.render('dashboardtest', {
             totalSales,
-            totalOrders,
+            totalOrders, 
             areaCovered,
             totalCustomers,
             averageOrderValue,
@@ -247,6 +247,38 @@ exports.displayDashBoard = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
+
+exports.getDashboardData = async (req, res) => {
+    const { filter } = req.query;
+
+    let dateFilter = {};
+    if (filter === 'today') {
+        dateFilter = { $gte: new Date().setHours(0, 0, 0, 0) };
+    } else if (filter === 'weekly') {
+        dateFilter = { $gte: new Date(new Date() - 7 * 24 * 60 * 60 * 1000) };
+    } else if (filter === 'monthly') {
+        dateFilter = { $gte: new Date(new Date().setDate(1)) };
+    } else if (filter === 'yearly') {
+        dateFilter = { $gte: new Date(new Date().setMonth(0, 1)) };
+    }
+
+    try {
+        const orders = await Order.find({ createdAt: dateFilter });
+        // Process data as per filtered timeframe...
+        res.json({
+            totalSales,
+            totalOrders,
+            totalCustomers,
+            chartLabels,
+            chartData,
+            topCustomers,
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error.message);
+        res.status(500).json({ message: 'Error fetching data' });
+    }
+};
+
 
 exports.displayUsers = async (req, res) => {
     try {
@@ -477,7 +509,14 @@ exports.addNewOrder = async (req, res) => {
             return res.status(404).json({ message: 'Product not found.' });
         }
 
+        if (productData.stock < quantity) {
+            res.redirect('/admin/transactions', { error: 'Not enough stock available for this order.'});
+        }
+
         const totalAmount = productData.price * quantity;
+
+        productData.stock -= quantity;
+        await productData.save();
 
         const newOrder = new Order({
             customer,
@@ -492,6 +531,7 @@ exports.addNewOrder = async (req, res) => {
         });
 
         await newOrder.save();
+
         req.session.success = 'Order placed successfully';
         res.redirect('/admin/transactions');
     } catch (error) {
@@ -499,6 +539,7 @@ exports.addNewOrder = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
 
 exports.editOrder = async (req, res) => {
     const { transactionId } = req.params._id;
@@ -513,26 +554,23 @@ exports.editOrder = async (req, res) => {
     } = req.body;
 
     try {
-        // Find the order by transaction ID
         const order = await Order.findById(transactionId);
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Update order fields
-        order.customer_name = customer_name; // Assuming you're storing customer names in the order, if not adjust this
-        order.address = address; // Update address
-        order.qty = qty; // Update quantity
-        order.total = amount; // Update total amount
-        order.dispatch = dispatch ? new Date(dispatch) : null; // Update dispatch date
-        order.status = status; // Update status
-        order.delivered = delivered ? new Date(delivered) : null; // Update delivered date
+        order.customer_name = customer_name;
+        order.address = address;
+        order.qty = qty; 
+        order.total = amount;
+        order.dispatch = dispatch ? new Date(dispatch) : null; 
+        order.status = status; 
+        order.delivered = delivered ? new Date(delivered) : null; 
 
         // Save the updated order
         await order.save();
         req.session.success = 'Order updated successfully';
-        // Redirect or respond with success
         res.redirect('/admin/transactions');
     } catch (error) {
         console.error(error);
@@ -547,7 +585,7 @@ exports.deleteOrder = async (req, res) => {
         if (!order) {
             return res.status(404).send('Order not found');
         }
-        await Order.deleteOne({ _id: orderId }); // Directly use orderId here
+        await Order.deleteOne({ _id: orderId });
         req.session.success = 'Order deleted successfully';
         res.redirect('/admin/transactions');
     } catch (error) {

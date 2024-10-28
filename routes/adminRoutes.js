@@ -14,6 +14,8 @@ router.post('/add-customer', authController.isAuthenticated, adminController.add
 
 router.get('/dashboard', authController.isAuthenticated, adminController.displayDashBoard);
 
+router.get('filter-dashbaord', authController.isAuthenticated, adminController.getDashboardData)
+
 router.get('/accounts', authController.isAuthenticated, adminController.displayUsers);
 
 router.post('/create-user', authController.isAuthenticated, adminController.createUser);

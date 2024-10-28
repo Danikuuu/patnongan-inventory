@@ -415,7 +415,7 @@
             <div class="analysis-frame">
                 <div class="pframe">
                     <div class="hero-frame">
-                        <div class="title">
+                        <!-- <div class="title">
                             <span><p5>Welcome to your Dashboard</p5></span>
                             <select id="filter">
                                 <option value="">Filtered By</option>
@@ -425,7 +425,7 @@
                                 <option value="monthly">Monthly</option>
                                 <option value="yearly">Yearly</option>
                             </select>
-                        </div>
+                        </div> -->
                         <div class="hero-head">
                             <div class="hero-menu">
                                 <div class="h-items">
@@ -831,7 +831,39 @@ const stockLevelBarChart = new Chart(ctxBar, {
     });
 </script>
 
+<script>
+    document.getElementById('filter').addEventListener('change', async function () {
+    const filter = this.value; // Get selected filter value
 
+    try {
+        // Fetch data based on the selected filter
+        const response = await fetch(`/filter-dashboard?filter=${filter}`);
+        if (!response.ok) throw new Error('Failed to fetch data');
+
+        const data = await response.json();
+
+        // Update the dashboard elements based on the response data
+        document.querySelector('.hero-menu p6').textContent = `₱ ${data.totalSales}`;
+        document.querySelector('.hero-menu p6').textContent = data.totalOrders;
+        document.querySelector('.hero-menu p6').textContent = data.totalCustomers;
+
+        // Populate top customers
+        const topCustomersContainer = document.querySelector('.top-customers-table');
+        topCustomersContainer.innerHTML = data.topCustomers.map(customer =>
+            `<tr><td>${customer.name} - ₱${customer.totalSpent}</td></tr>`
+        ).join('');
+
+        // Update chart data
+        myLineChart.data.labels = data.chartLabels;
+        myLineChart.data.datasets[0].data = data.chartData;
+        myLineChart.update();
+
+    } catch (error) {
+        console.error('Error fetching and updating data:', error.message);
+    }
+});
+
+</script>
 
   
 
