@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const Order = require('./models/orderModel');  // Adjust path as necessary
-const Customer = require('./models/customerModel');  // Adjust path for customer model
-const Product = require('./models/productModel');  // Adjust path for product model
-
+const Order = require('./models/orderModel'); // Adjust path as necessary
+const Customer = require('./models/customerModel'); // Adjust path as necessary
+const Product = require('./models/productModel'); // Adjust path as necessary
 const dotenv = require('dotenv');
-dotenv.config()
+
+dotenv.config();
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
@@ -21,49 +21,65 @@ function getRandomDate(start, end) {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-// Helper function to generate random data
+// Helper function to get a random element from an array
 function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Status, couriers, and sizes for randomization
-const statuses = ['pending', 'processing', 'shipped', 'delivered'];
-const couriers = ['DHL', 'FedEx', 'UPS', 'USPS'];
-const sizes = ['small', 'medium', 'large', 'extra-large'];
-
 // Seed function
 async function seedOrders() {
   try {
-    // Fetch some customers and products
-    const customers = await Customer.find().limit(10); // Get 10 random customers
-    const products = await Product.find().limit(5);    // Get 5 random products
+    // Clear existing orders
+    await Order.deleteMany({});
+
+    // Fetch customers and products
+    const customers = await Customer.find().limit(100); // Adjust limit as necessary
+    const products = await Product.find().limit(4);    // We have only 4 products
 
     if (customers.length === 0 || products.length === 0) {
-      console.log('Please make sure there are customers and products in the database.');
+      console.log('Please ensure there are customers and products in the database.');
       return;
     }
 
     // Array to hold the new orders
     const orders = [];
 
-    // Generate 100 orders
-    for (let i = 0; i < 100; i++) {
-      // Random customer and product
+    // Generate 1500 orders
+    for (let i = 0; i < 1500; i++) {
+      // Random customer
       const customer = getRandomElement(customers);
-      const product = getRandomElement(products);
+      
+      // Random number of products for the order (between 1 and 3)
+      const numberOfProducts = Math.floor(Math.random() * 3) + 1; 
+      const orderedProducts = [];
+
+      for (let j = 0; j < numberOfProducts; j++) {
+        // Random product
+        const product = getRandomElement(products);
+        const quantity = Math.floor(Math.random() * 5) + 1;  // Random quantity between 1 and 5
+
+        // Add product details to ordered products
+        orderedProducts.push({
+          product: product._id,
+          name: product.name,
+          quantity: quantity,
+          size: product.size
+        });
+      }
+
+      // Calculate total based on ordered products
+      const total = orderedProducts.reduce((sum, item) => {
+        return sum + (item.quantity * (products.find(p => p._id.toString() === item.product.toString()).price));
+      }, 0);
 
       // Create the order object
       const order = new Order({
         customer: customer._id,
-        products: [{
-          product: product._id,
-          quantity: Math.floor(Math.random() * 5) + 1,  // Random quantity between 1 and 5
-          size: getRandomElement(sizes)                // Random size
-        }],
-        total: Math.floor(Math.random() * 500) + 50,    // Random total between $50 and $500
-        status: getRandomElement(statuses),             // Random status
-        courier: getRandomElement(couriers),            // Random courier
-        placed: getRandomDate(new Date(2023, 0, 1), new Date()) // Random date between Jan 1, 2023, and now
+        products: orderedProducts,
+        total: total,
+        status: getRandomElement(['pending', 'processing', 'cancelled', 'delivered']), // Random status
+        placed: getRandomDate(new Date(2023, 0, 1), new Date()), // Random date between Jan 1, 2023, and now
+        courier: getRandomElement(['In-House', 'Third-Party']) // Random courier
       });
 
       // Push the order to the array
@@ -72,7 +88,7 @@ async function seedOrders() {
 
     // Insert all orders at once
     await Order.insertMany(orders);
-    console.log('Seeded 100 orders successfully');
+    console.log('Seeded 1500 orders successfully');
   } catch (err) {
     console.error('Error seeding orders:', err);
   } finally {

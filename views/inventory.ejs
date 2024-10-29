@@ -313,27 +313,32 @@
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
-    z-index: 1; /* Sit on top */
+    z-index: 1000; /* Sit on top of everything */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
     height: 100%; /* Full height */
     background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+    overflow: auto; /* Enable scrolling for the modal itself */
 }
 
 .modal-content {
     background-color: #ffffff;
-    margin: 10% auto; /* Center the modal */
+    margin: 5% auto; /* Center the modal */
     padding: 20px;
     border: 1px solid #888;
     border-radius: 15px;
     width: 90%; /* Adjust as needed */
     max-width: 600px; /* Limit max width */
+    max-height: 80vh; /* Limit max height to 80% of viewport height */
+    overflow-y: auto; /* Enable vertical scroll if content exceeds max height */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     color: #083a3c;
     font-size: 8px;
     line-height: 1em;
 }
+
+
 
 .newbtn {
             background-color: #497641; /* Default color for the Edit button */
@@ -607,19 +612,19 @@ select {
                 </div>
                 <header>
                     <h1>
-                        <span id="totalOrdersCount"><%= orders.length %></span>
+                        <span id="totalOrdersCount"><%= totalRecords %></span>
                         <p2><i class="fas fa-shopping-cart"></i> total orders</p2>
                     </h1>
                     <h1>
-                        <span id="pendingCount"><%= orders.filter(o => o.status === 'pending').length %></span>
+                        <span id="pendingCount"><%= totalPending %></span>
                         <p2><i class="fas fa-hourglass-half"></i> pending</p2>
                     </h1>
                     <h1>
-                        <span id="deliveredCount"><%= orders.filter(o => o.status === 'delivered').length %></span>
+                        <span id="deliveredCount"><%= totalDelivered %></span>
                         <p2><i class="fas fa-check-circle"></i> delivered</p2>
                     </h1>
                     <h1>
-                        <span id="cancelledCount"><%= orders.filter(o => o.status === 'cancelled').length %></span>
+                        <span id="cancelledCount"><%= totalCancelled %></span>
                         <p2><i class="fas fa-times-circle"></i> cancelled</p2>
                     </h1>
                 </header>
@@ -675,12 +680,12 @@ select {
                                     <td>
                                         <a onclick="openEditModal(
                                             '<%= order._id %>', 
-                                            '<%= order.amount %>', 
-                                            '<%= order.qty %>', 
-                                            '<%= order.customer.first_name %> <%= order.customer.last_name %>', 
-                                            '<%= order.address %>', 
-                                            '<%= order.dispatch ? new Date(order.dispatch).toISOString() : '' %>', 
-                                            '<%= order.delivered ? new Date(order.delivered).toISOString() : '' %>', 
+                                            '<%= order.customer._id %>', 
+                                            '<%= order.courier %>', 
+                                            '<%= order.total %>', 
+                                            <%= JSON.stringify(order.products) %>, 
+                                            '<%= order.createdAt ? new Date(order.createdAt).toISOString() : '' %>', 
+                                            '<%= order.updatedAt ? new Date(order.updatedAt).toISOString() : '' %>', 
                                             '<%= order.status %>'
                                         )">
                                             <i class="fas fa-pen icon"></i>
@@ -695,53 +700,91 @@ select {
                                     </td>
                                 </tr>
                                 
-                                <!-- Modal for editing order -->
                                 <div class="modal" id="editModal_<%= order._id %>" style="display:none;">
                                     <div class="modal-content">
                                         <div class="title-frame">
-                                            <a onclick="closeEditModal('editModal_<%= order._id %>')" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
-                                            <span>UPDATE DELIVERY</span>
+                                            <a onclick="closeEditModal('<%= order._id %>')" class="exitbtn"><i class="fas fa-arrow-left"></i></a>
+                                            <span>UPDATE ORDER</span>
                                         </div>
-                                        <form id="editForm" action="/admin/edit-order/<%= order._id %>?_method=PUT" method="POST">
+                                        <form id="editForm" action="/admin/edit-order/<%= order._id %>" method="POST">
                                             <input type="hidden" name="_method" value="PUT">
+                                            
                                             <div class="row">
                                                 <div class="field">
-                                                    <label for="customer_name_<%= order._id %>">Customer Name:</label>
-                                                    <input type="text" name="customer_name" id="customer_name_<%= order._id %>" required>
+                                                    <label for="customer_<%= order._id %>">Customer Name:</label>
+                                                    <input type="text" name="customer" id="customer_<%= order._id %>" 
+                                                           value="<%= order.customer.first_name %> <%= order.customer.last_name %>" 
+                                                           required>
                                                 </div>
                                                 <div class="field">
-                                                    <label for="address_<%= order._id %>">Address:</label>
-                                                    <input type="text" name="address" id="address_<%= order._id %>" required>
+                                                    <label for="courier_<%= order._id %>">Courier:</label>
+                                                    <input type="text" name="courier" id="courier_<%= order._id %>" 
+                                                           value="<%= order.courier %>" required>
                                                 </div>
                                             </div>
+                                
+                                            <!-- Display each product in the order -->
+                                            <% order.products.forEach((productItem, index) => { %>
+                                                <div class="product-group">
+                                                    <div class="field">
+                                                        <label for="product_<%= order._id %>_<%= index %>">Product Name:</label>
+                                                        <input type="hidden" name="products[<%= index %>][name]" 
+                                                               value="<%= productItem.name %>" required>
+                                                        <select name="products[<%= index %>][product]" id="product_<%= order._id %>_<%= index %>">
+                                                            <% products.forEach((product) => { %>
+                                                                <option value="<%= product._id %>" 
+                                                                    <% if (product.name === productItem.name) { %>disabled<% } %>> 
+                                                                    <%= product.name %>
+                                                                </option>
+                                                            <% }); %>
+                                                        </select>                                                            
+                                                    </div>
+                                                    <div class="field">
+                                                        <label for="quantity_<%= order._id %>_<%= index %>">Quantity:</label>
+                                                        <input type="number" name="products[<%= index %>][quantity]" 
+                                                               id="quantity_<%= order._id %>_<%= index %>" 
+                                                               value="<%= productItem.quantity %>" required>
+                                                    </div>
+                                                    <div class="field">
+                                                        <label for="size_<%= order._id %>_<%= index %>">Size:</label>
+                                                        <input type="text" name="products[<%= index %>][size]" 
+                                                               id="size_<%= order._id %>_<%= index %>" 
+                                                               value="<%= productItem.size %>" required>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                    
                                             <div class="row">
                                                 <div class="field">
-                                                    <label for="qty_<%= order._id %>">Quantity:</label>
-                                                    <input type="number" name="qty" id="qty_<%= order._id %>" required>
-                                                </div>
-                                                <div class="field">
-                                                    <label for="amount_<%= order._id %>">Amount:</label>
-                                                    <input type="number" name="amount" id="amount_<%= order._id %>" required>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="field">
-                                                    <label for="dispatch_<%= order._id %>">Dispatch Date:</label>
-                                                    <input type="date" name="dispatch" id="dispatch_<%= order._id %>">
+                                                    <label for="total_<%= order._id %>">Total Amount:</label>
+                                                    <input type="number" name="total" id="total_<%= order._id %>" 
+                                                           value="<%= order.total %>" required>
                                                 </div>
                                                 <div class="field">
                                                     <label for="status_<%= order._id %>">Status:</label>
                                                     <select name="status" id="status_<%= order._id %>" required>
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Delivered">Delivered</option>
-                                                        <option value="Cancelled">Cancelled</option>
+                                                        <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                                        <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Processing</option>
+                                                        <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                                                        <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                                                        <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                                                     </select>
+                                                </div>
+                                            </div>
+                                
+                                            <div class="row">
+                                                <div class="field">
+                                                    <label for="dispatch_<%= order._id %>">Dispatch Date:</label>
+                                                    <input type="date" name="dispatch" id="dispatch_<%= order._id %>" 
+                                                           value="<%= order.dispatch ? order.dispatch.toISOString().split('T')[0] : '' %>">
                                                 </div>
                                                 <div class="field">
                                                     <label for="delivered_<%= order._id %>">Delivered Date:</label>
-                                                    <input type="date" name="delivered" id="delivered_<%= order._id %>">
+                                                    <input type="date" name="delivered" id="delivered_<%= order._id %>" 
+                                                           value="<%= order.delivered ? order.delivered.toISOString().split('T')[0] : '' %>">
                                                 </div>
                                             </div>
+                                
                                             <div class="form-buttons">
                                                 <button type="reset" class="clrbtn">CLEAR</button>
                                                 <button type="submit" class="newbtn">SAVE</button>
@@ -749,33 +792,41 @@ select {
                                         </form>
                                     </div>
                                 </div>
+                                
+                                
+                                
                         
                             <% }) %>                          
                         </tbody>
-                        
+                                                
                         <script>
-                            function openEditModal(transactionId, amount, qty, customerName, address, dispatch, delivered, status) {
-                                // Set values in the form fields
-                                document.getElementById('customer_name_' + transactionId).value = customerName;
-                                document.getElementById('address_' + transactionId).value = address;
-                                document.getElementById('qty_' + transactionId).value = qty;
-                                document.getElementById('amount_' + transactionId).value = amount;
-                        
-                                // Set dispatch and delivered dates
-                                document.getElementById('dispatch_' + transactionId).value = dispatch ? new Date(dispatch).toISOString().substring(0, 10) : '';
-                                document.getElementById('delivered_' + transactionId).value = delivered ? new Date(delivered).toISOString().substring(0, 10) : '';
-                        
-                                // Set the status
-                                const statusSelect = document.getElementById('status_' + transactionId);
-                                statusSelect.value = status;
-                        
-                                // Show the modal
-                                document.getElementById('editModal_' + transactionId).style.display = 'block';
-                            }
-                        
-                            function closeEditModal(modalId) {
-                                document.getElementById(modalId).style.display = 'none';
-                            }
+function openEditModal(transactionId, customerName, courier, total, products, dispatch, delivered, status) {
+    // Set customer name, courier, and total amount
+    document.getElementById('customer_' + transactionId).value = customerName;
+    document.getElementById('courier_' + transactionId).value = courier;
+    document.getElementById('total_' + transactionId).value = total;
+
+    // Set each product's fields
+    products.forEach((productItem, index) => {
+        document.getElementById('product_' + transactionId + '_' + index).value = productItem.product;
+        document.getElementById('quantity_' + transactionId + '_' + index).value = productItem.quantity;
+    });
+
+    // Set dispatch and delivered dates
+    document.getElementById('dispatch_' + transactionId).value = dispatch ? new Date(dispatch).toISOString().substring(0, 10) : '';
+    document.getElementById('delivered_' + transactionId).value = delivered ? new Date(delivered).toISOString().substring(0, 10) : '';
+
+    // Set the status
+    const statusSelect = document.getElementById('status_' + transactionId);
+    statusSelect.value = status;
+
+    // Show the modal
+    document.getElementById('editModal_' + transactionId).style.display = 'block';
+}
+function closeEditModal(transactionId) {
+    document.getElementById('editModal_' + transactionId).style.display = 'none';
+}
+
                         </script>
                         
                     </table>
@@ -784,7 +835,22 @@ select {
                             <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
                         <% } %>
                         
-                        <% for (let i = 1; i <= totalPages; i++) { %>
+                        <% 
+                            // Calculate the start and end page numbers to display
+                            let startPage = Math.max(1, currentPage - 5);
+                            let endPage = Math.min(totalPages, currentPage + 4);
+                            
+                            // Adjust start and end if there are fewer than 10 pages
+                            if (endPage - startPage < 9) {
+                                if (startPage === 1) {
+                                    endPage = Math.min(10, totalPages); // Show first 10 pages
+                                } else if (endPage === totalPages) {
+                                    startPage = Math.max(1, totalPages - 9); // Show last 10 pages
+                                }
+                            }
+                        %>
+                        
+                        <% for (let i = startPage; i <= endPage; i++) { %>
                             <% if (i === currentPage) { %>
                                 <span><%= i %></span> <!-- Current page, no link -->
                             <% } else { %>
@@ -792,11 +858,15 @@ select {
                             <% } %>
                         <% } %>
                         
+                        <% if (endPage < totalPages) { %>
+                            <span>...</span>
+                            <a href="?page=<%= totalPages %>&limit=<%= limit %>"><%= totalPages %></a>
+                        <% } %>
+                        
                         <% if (currentPage < totalPages) { %>
                             <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
                         <% } %>
-                    </div>
-
+                    </div>                    
                 </div>
             </div>
         </div>
@@ -887,35 +957,9 @@ select {
     function closeModal() {
         document.getElementById("modal").style.display = "none";
     }
+
 </script>
 
-<!-- Edit Modal -->
-
-
-<script>
-    function openEditModal(transactionId, amount, qty, customerName, address, dispatch, delivered, status) {
-        // Set values in the form fields
-        document.getElementById('customer_name_' + transactionId).value = customerName;
-        document.getElementById('address_' + transactionId).value = address;
-        document.getElementById('qty_' + transactionId).value = qty;
-        document.getElementById('amount_' + transactionId).value = amount;
-
-        // Set dispatch and delivered dates
-        document.getElementById('dispatch_' + transactionId).value = dispatch ? new Date(dispatch).toISOString().substring(0, 10) : '';
-        document.getElementById('delivered_' + transactionId).value = delivered ? new Date(delivered).toISOString().substring(0, 10) : '';
-
-        // Set the status
-        const statusSelect = document.getElementById('status_' + transactionId);
-        statusSelect.value = status;
-
-        // Show the modal
-        document.getElementById('editModal_' + transactionId).style.display = 'block';
-    }
-
-    function closeEditModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-</script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const productSelect = document.getElementById('product');

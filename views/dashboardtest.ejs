@@ -415,39 +415,40 @@
             <div class="analysis-frame">
                 <div class="pframe">
                     <div class="hero-frame">
-                        <!-- <div class="title">
+                        <div class="title">
                             <span><p5>Welcome to your Dashboard</p5></span>
-                            <select id="filter">
-                                <option value="">Filtered By</option>
-                                <option value="upToDate">Current</option>
-                                <option value="today">Today</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
-                            </select>
-                        </div> -->
+                            <form id="filterForm" method="GET" action="/admin/filtered-dashboard">
+                                <select id="filter" name="filter" onchange="this.form.submit()">
+                                    <option value="">Filtered By</option>
+                                    <option value="upToDate" <%= filter === 'upToDate' ? 'selected' : '' %>>Current</option>
+                                    <option value="today" <%= filter === 'today' ? 'selected' : '' %>>Today</option>
+                                    <option value="weekly" <%= filter === 'weekly' ? 'selected' : '' %>>Weekly</option>
+                                    <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
+                                </select>
+                            </form>                            
+                        </div>
                         <div class="hero-head">
                             <div class="hero-menu">
                                 <div class="h-items">
                                     <p6>₱ <%= totalSales %></p6>
-                                    <p3>Total Sales &bull; <span class="emphas">+10%</span> </p3>
+                                    <p3>Total Sales </p3>
                                     </div>
                             </div>
                             <div class="hero-menu">
                                 <div class="h-items">
                                     <p6><%= totalOrders %></p6>
-                                    <p3>Total Transactions &bull; <span class="emphas">+10%</span> </p3>
+                                    <p3>Total Transactions </p3>
                                     </div>
                             </div>
                             <div class="hero-menu">
                                 <div class="h-items">
                                     <p6><%= areaCovered %></p6>
-                                    <p3>Area Covered &bull; <span class="emphas">+5</span> </p3>
+                                    <p3>Area Covered </p3>
                                     </div></div>
                             <div class="hero-menu">
                                 <div class="h-items">
                                     <p6><%= totalCustomers %></p6>
-                                    <p3>Total Customers &bull; <span class="emphas">+23</span> </p3>
+                                    <p3>Total Customers  </p3>
                                     </div></div>
                         </div>
                         <div class="hero-content">
@@ -499,20 +500,30 @@
                 </div>
                 <div class="sframe">
                     <div class="stocks-frame">
-                        <p1 style="color: white">SALES TRACK <span style="color: rgb(0, 255, 0); font-weight: normal;"> +34% </span></p1>
+                        <p1 style="color: white">SALES TRACK </span></p1>
                         <canvas id="myLineChart"></canvas>
                     </div>
                     
                     <div class="delivery-frame">
                         <canvas id="myDonutChart" style="align-self: right;"></canvas>
                         <div class="sales1" style="background-color: transparent; padding: 0; display: flex; flex-direction: column; max-width: 100px;">
-                            <p2 style="text-align: left;">In-House <br>161k &bull; <span style="color: rgb(0, 255, 0); font-weight: normal;">81.5%</span></p2><br>
-                            <p2 style="text-align: left;">Third Party <br>38k &bull; <span style="color: rgb(0, 255, 0); font-weight: normal;">18.5%</span></p2>
+                            <p2 style="text-align: left;">
+                                In-House <br>&bull; 
+                                <span style="color: rgb(0, 255, 0); font-weight: normal;">
+                                    <%= inHouse %> <!-- Display In-house count -->
+                                </span>
+                            </p2><br>
+                            <p2 style="text-align: left;">
+                                Third Party <br>&bull; 
+                                <span style="color: rgb(0, 255, 0); font-weight: normal;">
+                                    <%= thirdParty %> <!-- Display Third-party count -->
+                                </span>
+                            </p2>
                         </div>
                     </div>
                     
                     <div class="orders-frame">
-                        <p1 style="color: white">STOCKS LEVEL <span style="color: rgb(0, 255, 0); font-weight: normal;"> +34% </span></p1>
+                        <p1 style="color: white">STOCKS LEVEL</p1>
                         <canvas id="myBarChart"></canvas>
                     </div>
                 
@@ -529,117 +540,115 @@
     </div>
 
 <script>
+    const productStock = <%- JSON.stringify(productStock) %>; // Inject data from backend
+    const stockLabels = productStock.map(item => item.name.replace('Egg-', '')); // Extract names, removing "Egg-"
+    const stockData = productStock.map(item => item.stock); // Extract stock levels
 
-const ctxBar = document.getElementById('myBarChart').getContext('2d');
-const stockLabels = ['Small', 'Medium', 'Large', 'Assrtd'];
-const stockData = [60, 30, 40, 80]; // Example stock levels
+    // Function to determine background color based on the highest value
+    const getBgColor = (data) => {
+        const maxValue = Math.max(...data);
+        return data.map(value => (value === maxValue ? '#fbad48' : '#fce2a0')); // Highlight max value
+    };
 
-// Function to determine background color based on highest value
-const getBgColor = (data) => {
-    const maxValue = Math.max(...data);
-    return data.map(value => (value === maxValue ? '#fbad48' : '#fce2a0')); // Blue for max value
-};
+    const ctxBar = document.getElementById('myBarChart').getContext('2d');
+    const stockLevelBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: stockLabels,
+            datasets: [{
+                label: 'Stock Level',
+                data: stockData,
+                backgroundColor: getBgColor(stockData),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // Hide the legend
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        display: false // Hide y-axis labels
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10, // Customize font size for labels
+                            family: 'poppins', // Change font family if desired
+                            style: 'normal', // Change font style
+                            lineHeight: 1
+                        },
+                        color: 'white' // Set color of x-axis labels
+                    }
+                }
+            }
+        }
+    });
 
-const stockLevelBarChart = new Chart(ctxBar, {
-    type: 'bar',
+
+    const inHouseData = <%= inHouse %>;
+const thirdPartyData = <%= thirdParty %>;
+
+const ctx = document.getElementById('myDonutChart').getContext('2d');
+
+// Define solid colors for each segment
+const colorInHouse = '#fbad48'; // Solid color for In-house
+const colorThirdParty = '#fce2a0'; // Solid color for Third-party
+
+const myDonutChart = new Chart(ctx, {
+    type: 'doughnut',
     data: {
-        labels: stockLabels,
+        labels: ['In-house', 'Third-party'],
         datasets: [{
-            label: 'Stock Level',
-            data: stockData,
-            backgroundColor: getBgColor(stockData),
-            borderRadius: 8,
+            data: [inHouseData, thirdPartyData],
+            backgroundColor: [colorInHouse, colorThirdParty], // Use solid colors
+            borderWidth: 0
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false,
+        cutout: '75%',
         plugins: {
-            legend: {
-                display: false // Hide the legend
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    display: false // Hide y-axis quantity labels
-                }
+            tooltip: {
+                enabled: false
             },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                        font: {
-                            size: 10, // Customize the font size for month labels
-                            family: 'poppins', // Optional: change font family
-                            style: 'normal', // Optional: change font style
-                            lineHeight: 1 // Optional: adjust line height
-                        },
-                    color: 'white', // Change color of x-axis labels if needed
-                }
+            legend: {
+                display: false
             }
         }
-    }
-});
+    },
+    plugins: [{
+        afterDraw: function(chart) {
+            const width = chart.width,
+                  height = chart.height,
+                  ctx = chart.ctx;
 
-        const ctx = document.getElementById('myDonutChart').getContext('2d');
-    
-        // Create gradient for In-house
-        const gradientInHouse = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientInHouse.addColorStop(0, '#fbad48'); // Darker start color
-        gradientInHouse.addColorStop(1, '#fbad48'); // Lighter end color
-    
-        // Create gradient for Third-party
-        const gradientThirdParty = ctx.createLinearGradient(0, 0, 0, 400);
-        gradientThirdParty.addColorStop(0, '#fce2a0'); // Darker start color
-        gradientThirdParty.addColorStop(1, '#fce2a0'); // Lighter end color
-    
-        const myDonutChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['In-house', 'Third-party'],
-                datasets: [{
-                    data: [81.5, 18.5],
-                    backgroundColor: [gradientInHouse, gradientThirdParty],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                cutout: '75%',
-                plugins: {
-                    tooltip: {
-                        enabled: false
-                    },
-                    legend: {
-                        display: false
-                    }
-                }
-            },
-            plugins: [{
-                afterDraw: function(chart) {
-                    const width = chart.width,
-                          height = chart.height,
-                          ctx = chart.ctx;
-    
-                    const truckImage = new Image();
-                    truckImage.src = '/public/images/logo.png'; // Replace with your image path
-    
-                    truckImage.onload = function() {
-                        const iconSize = 50; // Size of the icon
-                        const x = (width - iconSize) / 2; // Center X position
-                        const y = (height - iconSize) / 2; // Center Y position
-    
-                        ctx.drawImage(truckImage, x, y, iconSize, iconSize); // Draw the truck image
-                    };
-                }
-            }]
-        });
+            const truckImage = new Image();
+            truckImage.src = '/public/images/logo.png'; // Replace with your image path
+
+            truckImage.onload = function() {
+                const iconSize = 50;
+                const x = (width - iconSize) / 2;
+                const y = (height - iconSize) / 2;
+
+                ctx.drawImage(truckImage, x, y, iconSize, iconSize);
+            };
+        }
+    }]
+});
     </script>
 <script>
     // Fetch the data passed from the backend
@@ -747,9 +756,9 @@ const stockLevelBarChart = new Chart(ctxBar, {
     // Function to dynamically assign colors based on size
     function getColorForSize(size) {
         const colorMap = {
-            Small: 'rgba(168, 213, 186, 1)',
-            Medium: 'rgba(107, 190, 69, 1)',
-            Large: 'rgba(209, 197, 13, 1)',
+            small: 'rgba(168, 213, 186, 1)',
+            medium: 'rgba(107, 190, 69, 1)',
+            large: 'rgba(209, 197, 13, 1)',
             Assorted: 'rgba(100, 149, 237, 1)', // Example color for "Assorted"
             // Add more sizes as needed
         };
@@ -864,8 +873,151 @@ const stockLevelBarChart = new Chart(ctxBar, {
 });
 
 </script>
+  <script>
+    document.getElementById('filter').addEventListener('change', async function () {
+    const filter = this.value; // Get selected filter value
 
-  
+    try {
+        // Fetch data based on the selected filter
+        const response = await fetch(`/filter-dashboard?filter=${filter}`);
+        if (!response.ok) throw new Error('Failed to fetch data');
 
+        const data = await response.json();
+
+        // Update the dashboard elements based on the response data
+        document.querySelector('.hero-menu:nth-of-type(1) p6').textContent = `₱ ${data.totalSales}`;
+        document.querySelector('.hero-menu:nth-of-type(2) p6').textContent = data.totalOrders;
+        document.querySelector('.hero-menu:nth-of-type(3) p6').textContent = data.areaCovered;
+        document.querySelector('.hero-menu:nth-of-type(4) p6').textContent = data.totalCustomers;
+
+        // Populate top customers
+        const topCustomersContainer = document.querySelector('.sales2:nth-of-type(2) table');
+        topCustomersContainer.innerHTML = ''; // Clear existing data
+        data.topCustomers.forEach(customer => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>
+                                <div class="s-items">
+                                    <p3>${customer.name}<br> ₱ ${customer.totalSpent} &bull; <span class="emphas">${customer.totalOrders} Orders</span></p3>
+                                </div>
+                             </td>`;
+            topCustomersContainer.appendChild(row);
+        });
+
+        // Populate top areas
+        const topAreasContainer = document.querySelector('.sales2:nth-of-type(3) table');
+        topAreasContainer.innerHTML = ''; // Clear existing data
+        data.topAreas.forEach(area => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>
+                                <div class="s-items">
+                                    <p3>${area.city}<br> ₱ ${area.totalSales} &bull; <span class="emphas">${area.totalOrders} Orders</span></p3>
+                                </div>
+                             </td>`;
+            topAreasContainer.appendChild(row);
+        });
+
+        // Update charts
+        drawBarChart(data.months, data.totalRevenue); // For the revenue chart
+        updateLineChart(data.orderByMonth); // Function to update line chart with new order data
+        updateBarChart(data.productStock); // Update stock chart data
+
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+// Function to update line chart with new data
+function updateLineChart(orderByMonth) {
+    const ctxGraphLine = document.getElementById('myGraphLineChart').getContext('2d');
+    // Clear existing chart if it exists
+    if (myGraphLineChart) {
+        myGraphLineChart.destroy();
+    }
+    
+    // Create datasets and labels based on new order data
+    const uniqueMonths = [...new Set(orderByMonth.map(order => order._id.month.toString()))];
+    const uniqueSizes = [...new Set(orderByMonth.map(order => order._id.size))];
+
+    const sizeData = {};
+    uniqueSizes.forEach(size => {
+        sizeData[size] = uniqueMonths.map(month => {
+            const order = orderByMonth.find(o => o._id.month.toString() === month && o._id.size === size);
+            return order ? order.totalOrders : 0;
+        });
+    });
+
+    const datasets = uniqueSizes.map(size => ({
+        label: `${size} Sold`,
+        data: sizeData[size],
+        borderColor: getColorForSize(size),
+        backgroundColor: 'transparent',
+        fill: false,
+        borderWidth: 2,
+        tension: 0,
+        pointRadius: 3,
+    }));
+
+    // Create the updated line chart
+    myGraphLineChart = new Chart(ctxGraphLine, {
+        type: 'line',
+        data: {
+            labels: uniqueMonths,
+            datasets: datasets,
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+                x: {
+                    autoSkip: false,
+                }
+            }
+        }
+    });
+}
+
+// Function to update bar chart with new stock data
+function updateBarChart(productStock) {
+    const ctxBar = document.getElementById('myBarChart').getContext('2d');
+    // Clear existing chart if it exists
+    if (stockLevelBarChart) {
+        stockLevelBarChart.destroy();
+    }
+
+    const stockLabels = productStock.map(item => item.name.replace('Egg-', ''));
+    const stockData = productStock.map(item => item.stock);
+
+    stockLevelBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: stockLabels,
+            datasets: [{
+                label: 'Stock Level',
+                data: stockData,
+                backgroundColor: getBgColor(stockData),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true },
+                x: { ticks: { color: 'white' } }
+            }
+        }
+    });
+}
+
+  </script>
 </body>
 </html>

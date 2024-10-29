@@ -14,6 +14,8 @@ router.post('/add-customer', authController.isAuthenticated, adminController.add
 
 router.get('/dashboard', authController.isAuthenticated, adminController.displayDashBoard);
 
+router.get('/filtered-dashboard', authController.isAuthenticated, adminController.displayDashBoardFilter)
+
 router.get('filter-dashbaord', authController.isAuthenticated, adminController.getDashboardData)
 
 router.get('/accounts', authController.isAuthenticated, adminController.displayUsers);
@@ -26,7 +28,7 @@ router.delete('/delete/:id', authController.isAuthenticated, adminController.del
 
 router.get('/transactions', authController.isAuthenticated, adminController.displayTransactions);
 
-router.post('/editOrder/:id', authController.isAuthenticated, adminController.updateOrderDetails);
+router.post('/edit-order/:id', authController.isAuthenticated, adminController.updateOrderDetails);
 
 router.post('/add-new-item', authController.isAuthenticated, adminController.addNewItem);
 
@@ -36,7 +38,7 @@ router.post('/delete-product/:id', authController.isAuthenticated, adminControll
 
 router.post('/add-order', authController.isAuthenticated, adminController.addNewOrder);
 
-router.post('/edit-order/:id', authController.isAuthenticated, adminController.editOrder);
+// router.post('/edit-order/:id', authController.isAuthenticated, adminController.editOrder);
 
 router.post('/delete-order/:id', authController.isAuthenticated, adminController.deleteOrder);
 

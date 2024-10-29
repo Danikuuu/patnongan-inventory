@@ -113,7 +113,42 @@ exports.addCustomer = async(req, res) => {
 
 exports.displayDashBoard = async (req, res) => {
     try {
-        const orders = await Order.find()
+        // Get the filter from query parameters
+        const filter = req.query.filter || '';
+
+        // Create a query object based on the filter
+        let query = {};
+        let dateFilter;
+
+        switch (filter) {
+            case 'upToDate':
+                dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'today':
+                const today = new Date();
+                const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+                const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+                query.placed = { $gte: startOfDay, $lte: endOfDay };
+                break;
+            case 'weekly':
+                dateFilter = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Last week
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'monthly':
+                dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last month
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'yearly':
+                dateFilter = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // Last year
+                query.placed = { $gte: dateFilter };
+                break;
+            default:
+                break; // No filter applied
+        }
+
+        // Fetch orders with the applied filter
+        const orders = await Order.find(query) // Use the query object here
             .populate({
                 path: 'customer',
                 select: 'first_name last_name city'
@@ -178,6 +213,9 @@ exports.displayDashBoard = async (req, res) => {
 
         const salesByDay = await Order.aggregate([
             {
+                $match: query, // Match with the applied filter
+            },
+            {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
                     totalSales: { $sum: "$total" }
@@ -189,16 +227,10 @@ exports.displayDashBoard = async (req, res) => {
         const trackLabels = salesByDay.map(sale => sale._id);
         const trackData = salesByDay.map(sale => sale.totalSales);
 
-        const deliveryBreakdown = await Order.aggregate([
-            {
-                $group: {
-                    _id: "$deliveryType",
-                    totalOrders: { $sum: 1 }
-                }
-            }
-        ]);
-
         const salesByMonth = await Order.aggregate([
+            {
+                $match: query, // Match with the applied filter
+            },
             {
                 $group: { 
                     _id: { $dateToString: { format: "%Y-%m", date: "$placed" } },
@@ -212,18 +244,40 @@ exports.displayDashBoard = async (req, res) => {
         const totalRevenue = salesByMonth.map(sale => sale.totalSales);     
 
         const orderByMonth = await Order.aggregate([
-            { $unwind: "$products" }, // Unwind the products array to process each product separately
+            { $unwind: "$products" }, 
+            {
+                $match: query, // Match with the applied filter
+            },
             {
                 $group: {
                     _id: { 
-                        month: { $dateToString: { format: "%Y-%m", date: "$placed" } }, // Group by year-month
-                        size: "$products.size" // Group by product size
+                        month: { $dateToString: { format: "%Y-%m", date: "$placed" } },
+                        size: "$products.size"
                     },
-                    totalOrders: { $sum: 1 } // Count the number of orders
+                    totalOrders: { $sum: 1 }
                 }
             },
             { $sort: { "_id.month": 1 } }
         ]);
+
+        const deliveryBreakdown = await Order.aggregate([
+            { 
+                $match: { 
+                    courier: { $ne: null },
+                    ...query // Include the query to filter deliveries as well
+                }
+            }, 
+            { $group: { _id: "$courier", totalOrders: { $sum: 1 } } } // Group by courier
+        ]);
+        
+        // Extract counts for In-house and Third-party from the aggregated result
+        const inHouse = deliveryBreakdown.find(item => item._id === 'In-House')?.totalOrders || 0;
+        const thirdParty = deliveryBreakdown.find(item => item._id === 'Third-Party')?.totalOrders || 0;
+        
+        console.log('In-house count:', inHouse);
+        console.log('Third-party count:', thirdParty);
+
+        const productStock = await Product.find({}, 'name stock');
 
         res.render('dashboardtest', {
             totalSales,
@@ -240,7 +294,206 @@ exports.displayDashBoard = async (req, res) => {
             orderByMonth,
             salesByMonth,
             months, 
-            totalRevenue 
+            totalRevenue,
+            productStock,
+            inHouse,
+            thirdParty,
+            filter // Pass the filter to the view
+        });
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.displayDashBoardFilter = async (req, res) => {
+    try {
+        // Get the filter from query parameters
+        const filter = req.query.filter || '';
+
+        // Create a query object based on the filter
+        let query = {};
+        let dateFilter;
+
+        switch (filter) {
+            case 'upToDate':
+                dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'today':
+                const today = new Date();
+                const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+                const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+                query.placed = { $gte: startOfDay, $lte: endOfDay };
+                break;
+            case 'weekly':
+                dateFilter = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Last week
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'monthly':
+                dateFilter = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last month
+                query.placed = { $gte: dateFilter };
+                break;
+            case 'yearly':
+                dateFilter = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // Last year
+                query.placed = { $gte: dateFilter };
+                break;
+            default:
+                break; // No filter applied
+        }
+
+        // Fetch orders with the applied filter
+        const orders = await Order.find(query)
+            .populate({
+                path: 'customer',
+                select: 'first_name last_name city'
+            });
+
+        const totalSales = orders.reduce((acc, order) => acc + order.total, 0);
+        const totalOrders = orders.length;
+        const totalCustomers = await Customer.countDocuments(); 
+        const averageOrderValue = totalOrders > 0 ? (totalSales / totalOrders).toFixed(2) : 0;
+        const marketPenetration = totalCustomers > 0 ? ((totalOrders / totalCustomers) * 100).toFixed(2) : 0;
+
+        const customerOrderSummary = {};
+        orders.forEach(order => {
+            const customerId = order.customer._id.toString();
+            if (!customerOrderSummary[customerId]) {
+                customerOrderSummary[customerId] = {
+                    customer: order.customer,
+                    totalOrders: 0,
+                    totalSpent: 0
+                };
+            }
+            customerOrderSummary[customerId].totalOrders += 1;
+            customerOrderSummary[customerId].totalSpent += order.total;
+        });
+
+        const customerSummaryArray = Object.values(customerOrderSummary);
+        const topCustomers = customerSummaryArray
+            .sort((a, b) => b.totalOrders - a.totalOrders)
+            .slice(0, 3)
+            .map(customer => ({
+                name: `${customer.customer.first_name} ${customer.customer.last_name}`,
+                totalOrders: customer.totalOrders,
+                totalSpent: customer.totalSpent.toFixed(2)
+            }));
+
+        const areaSummary = {};
+        orders.forEach(order => {
+            const city = order.customer.city;
+            if (!areaSummary[city]) {
+                areaSummary[city] = {
+                    city,
+                    totalOrders: 0,
+                    totalSales: 0 
+                };
+            }
+            areaSummary[city].totalOrders += 1;
+            areaSummary[city].totalSales += order.total; 
+        });
+
+        const topAreas = Object.values(areaSummary)
+            .sort((a, b) => b.totalOrders - a.totalOrders)
+            .slice(0, 3)
+            .map(area => ({
+                city: area.city,
+                totalOrders: area.totalOrders,
+                totalSales: area.totalSales.toFixed(2) 
+            }));
+
+        const uniqueCities = new Set(orders.map(order => order.customer.city));
+        const areaCovered = uniqueCities.size;
+
+        // Sales by day
+        const salesByDay = await Order.aggregate([
+            {
+                $match: query, // Match with the applied filter
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$placed" } },
+                    totalSales: { $sum: "$total" }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        const trackLabels = salesByDay.map(sale => sale._id);
+        const trackData = salesByDay.map(sale => sale.totalSales);
+
+        // Sales by month
+        const salesByMonth = await Order.aggregate([
+            {
+                $match: query,
+            },
+            {
+                $group: { 
+                    _id: { $dateToString: { format: "%Y-%m", date: "$placed" } },
+                    totalSales: { $sum: "$total" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        const months = salesByMonth.map(sale => sale._id);
+        const totalRevenue = salesByMonth.map(sale => sale.totalSales);
+
+        // Orders by month
+        const orderByMonth = await Order.aggregate([
+            { $unwind: "$products" }, 
+            {
+                $match: query,
+            },
+            {
+                $group: {
+                    _id: { 
+                        month: { $dateToString: { format: "%Y-%m", date: "$placed" } },
+                        size: "$products.size"
+                    },
+                    totalOrders: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.month": 1 } }
+        ]);
+
+        // Delivery breakdown
+        const deliveryBreakdown = await Order.aggregate([
+            { 
+                $match: { 
+                    courier: { $ne: null },
+                    ...query // Include the query to filter deliveries as well
+                }
+            }, 
+            { $group: { _id: "$courier", totalOrders: { $sum: 1 } } } // Group by courier
+        ]);
+        
+        // Extract counts for In-house and Third-party from the aggregated result
+        const inHouse = deliveryBreakdown.find(item => item._id === 'In-House')?.totalOrders || 0;
+        const thirdParty = deliveryBreakdown.find(item => item._id === 'Third-Party')?.totalOrders || 0;
+
+        const productStock = await Product.find({}, 'name stock');
+
+        res.render('dashboardtest', {
+            totalSales,
+            totalOrders, 
+            areaCovered,
+            totalCustomers,
+            averageOrderValue,
+            marketPenetration,
+            topCustomers,
+            topAreas,
+            trackLabels,
+            trackData,
+            deliveryBreakdown,
+            orderByMonth,
+            salesByMonth,
+            months, 
+            totalRevenue,
+            productStock,
+            inHouse,
+            thirdParty,
+            filter // Pass the filter to the view
         });
     } catch (error) {
         console.error('Error fetching dashboard data:', error.message);
@@ -361,6 +614,7 @@ exports.displayTransactions = async (req, res) => {
         req.session.success = null; 
 
         const products = await Product.find();
+        
         const orders = await Order.find()
             .populate({
                 path: 'customer',
@@ -368,8 +622,9 @@ exports.displayTransactions = async (req, res) => {
             })
             .populate({
                 path: 'products.product',
-                select: 'name price size'
+                select: '_id name price size'
             })
+            .sort({ placed: -1 })
             .skip(skip) 
             .limit(limit); 
 
@@ -393,7 +648,7 @@ exports.displayTransactions = async (req, res) => {
             customers,
             currentPage: page,
             totalPages, 
-            limit ,
+            limit,
             success,
             products
         });
@@ -405,35 +660,47 @@ exports.displayTransactions = async (req, res) => {
 };
 
 
+
 exports.updateOrderDetails = async (req, res) => {
-
     try {
-        const { first_name, last_name, phone, email, street_address, city, province, postal_code } = req.body;
+        const orderId = req.params.id;
+        const { customer, products, total, status, dispatch, delivered, courier } = req.body;
 
-        let order = await Order.findById(req.params.id);
-
+        const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
+            return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Updating order fields
-        order.first_name = first_name;
-        order.last_name = last_name;
-        order.phone = phone;
-        order.email = email;
-        order.street_address = street_address;
-        order.city = city;
-        order.province = province;
-        order.postal_code = postal_code;
+        // Update order details
+        order.customer = customer;
+        order.total = total;
+        order.status = status;
+        order.courier = courier;
+        
+
+        order.products = products.map(item => ({
+            product: item.product,
+            name: item.name,  
+            quantity: item.quantity,
+            size: item.size 
+        }));
+
+        if (dispatch) {
+            order.dispatch = new Date(dispatch);
+        }
+        if (delivered) {
+            order.delivered = new Date(delivered);
+        }
 
         await order.save();
-        console.log("Order updated successfully");
-        res.status(200).json({ success: 'Order updated successfully' });
+        req.session.success = 'Order updated successfully';
+        res.redirect('/admin/transactions');
     } catch (error) {
-        console.error('Error updating order:', error);
-        res.status(500).json({ error: 'An unexpected error occurred. Please try again later.' });
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
+
 
 exports.displayStocks = async(req, res) => {
     try {
@@ -542,33 +809,32 @@ exports.addNewOrder = async (req, res) => {
 
 
 exports.editOrder = async (req, res) => {
-    const { transactionId } = req.params._id;
-    const {
-        customer_name,
-        address,
-        qty,
-        amount,
-        dispatch,
-        status,
-        delivered
-    } = req.body;
+    const transactionId = req.params.id;
+    const { customer, total, courier, id, status, dispatch, delivered, products } = req.body;
 
     try {
+
+        console.log(transactionId);
         const order = await Order.findById(transactionId);
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        order.customer_name = customer_name;
-        order.address = address;
-        order.qty = qty; 
-        order.total = amount;
-        order.dispatch = dispatch ? new Date(dispatch) : null; 
-        order.status = status; 
-        order.delivered = delivered ? new Date(delivered) : null; 
+        order.customer = customer;
+        order.total = total;
+        order.courier = courier;
+        order.status = status;
+        order.dispatch = dispatch ? new Date(dispatch) : null;
+        order.delivered = delivered ? new Date(delivered) : null;
 
-        // Save the updated order
+        order.products = products.map(item => ({
+            product: item.product,
+            quantity: item.quantity,
+            name: item.name,
+            size: item.size
+        }));
+
         await order.save();
         req.session.success = 'Order updated successfully';
         res.redirect('/admin/transactions');
