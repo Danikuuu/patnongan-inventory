@@ -80,7 +80,8 @@ exports.displayOrders = async (req, res) => {
             currentPage: page, 
             totalPages, 
             limit,
-            success
+            success,
+            user : req.user
         });
     } catch (error) {
         console.error('Error fetching orders:', error.message);
@@ -101,7 +102,8 @@ exports.addCustomer = async(req, res) => {
             street_address,
             city,
             province,
-            postal_code
+            postal_code,
+            user : req.user
         });
          await newCustomer.save();
          req.session.success = 'New customer Added!';
@@ -298,6 +300,7 @@ exports.displayDashBoard = async (req, res) => {
             productStock,
             inHouse,
             thirdParty,
+            user : req.user,
             filter // Pass the filter to the view
         });
     } catch (error) {
@@ -492,6 +495,7 @@ exports.displayDashBoardFilter = async (req, res) => {
             totalRevenue,
             productStock,
             inHouse,
+            user : req.user,
             thirdParty,
             filter // Pass the filter to the view
         });
@@ -540,7 +544,7 @@ exports.displayUsers = async (req, res) => {
         const error = req.session.error;
         req.session.error = null;
         req.session.success = null; 
-        res.render('accounts', { users, success, error });
+        res.render('accounts', { users, success, error, user : req.user, });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -555,7 +559,7 @@ exports.createUser = async(req, res) => {
 
         await newUser.save();
         req.session.success = 'New user Added!'; 
-        res.redirect('/admin/accounts');
+        res.redirect('/admin/accounts', {user : req.user,});
     } catch (error) {
         res.status(400).json({message: error.message});
     }
@@ -581,7 +585,7 @@ exports.editUser = async (req, res) => {
 
         await user.save();
         req.session.success = 'User updated successfully';
-        res.redirect('/admin/accounts');
+        res.redirect('/admin/accounts', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "An unexpected error occurred. Please try again later." });
@@ -598,7 +602,7 @@ exports.deleteUser = async (req, res) => {
 
         await User.deleteOne({ _id: user._id });
         req.session.success = 'User deleted successfully';
-        res.redirect('/admin/accounts');
+        res.redirect('/admin/accounts', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
@@ -650,7 +654,8 @@ exports.displayTransactions = async (req, res) => {
             totalPages, 
             limit,
             success,
-            products
+            products,
+            user : req.user,
         });
         
     } catch (error) {
@@ -694,7 +699,7 @@ exports.updateOrderDetails = async (req, res) => {
 
         await order.save();
         req.session.success = 'Order updated successfully';
-        res.redirect('/admin/transactions');
+        res.redirect('/admin/transactions', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
@@ -708,7 +713,7 @@ exports.displayStocks = async(req, res) => {
         console.log(products);
         const success = req.session.success;
         req.session.success = null; 
-        return res.render('stocks', { products, success });
+        return res.render('stocks', { products, success, user : req.user, });
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -721,7 +726,7 @@ exports.addNewItem = async (req, res) => {
         const newProduct = new Product({ name, price, size, stock });
         await newProduct.save();
         req.session.success = 'New item added successfully';
-        res.redirect('/admin/stocks');
+        res.redirect('/admin/stocks', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -741,7 +746,7 @@ exports.editProduct = async (req, res) => {
         product.stock = stock;
         await product.save();
         req.session.success = 'Product updated successfully';
-        res.redirect('/admin/stocks');
+        res.redirect('/admin/stocks', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -756,7 +761,7 @@ exports.deleteProduct = async (req, res) => {
         }
         await Product.deleteOne({ _id: product._id });
         req.session.success = 'Product deleted successfully';
-        res.redirect('/admin/stocks');
+        res.redirect('/admin/stocks', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -800,7 +805,7 @@ exports.addNewOrder = async (req, res) => {
         await newOrder.save();
 
         req.session.success = 'Order placed successfully';
-        res.redirect('/admin/transactions');
+        res.redirect('/admin/transactions', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -837,7 +842,7 @@ exports.editOrder = async (req, res) => {
 
         await order.save();
         req.session.success = 'Order updated successfully';
-        res.redirect('/admin/transactions');
+        res.redirect('/admin/transactions', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -853,7 +858,7 @@ exports.deleteOrder = async (req, res) => {
         }
         await Order.deleteOne({ _id: orderId });
         req.session.success = 'Order deleted successfully';
-        res.redirect('/admin/transactions');
+        res.redirect('/admin/transactions', {user : req.user,});
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
