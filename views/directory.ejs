@@ -557,7 +557,7 @@ select {
                 </div>
                 <header>
                     <h1 class="h1a">
-                        <p1 id="customerCount"><%= totalCustomersWhoOrdered %></p1>
+                        <p1 id="customerCount"><%= totalRecords %></p1>
                         <p2><i class="fas fa-database"></i> total records</p2>
                     </h1>
                     <h1>
@@ -581,7 +581,7 @@ select {
                                 <th>CUSTOMER NAME</th>
                                 <th>ADDRESS</th>
                                 <th>PURCHASE</th>
-                                <th colspan="2">ACTION</th>
+                                <!-- <th colspan="2">ACTION</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -604,22 +604,22 @@ select {
                                         <%= customerSummary.totalOrders %> Orders
                                     </td>
                         
-                                    <td>
-                                        <button class="btn btn-update" 
-                                            onclick="openEditModal(
-                                                '<%= customerSummary.lastOrderId %>',  // Change here to use lastOrderId
-                                                '<%= customerSummary.customer.first_name %>', 
-                                                '<%= customerSummary.customer.last_name %>', 
-                                                '<%= customerSummary.customer.phone %>', 
-                                                '<%= customerSummary.customer.email %>', 
-                                                '<%= customerSummary.customer.city %>', 
-                                                '<%= customerSummary.customer.province %>', 
-                                                '<%= customerSummary.customer.street_address %>', 
-                                                '<%= customerSummary.customer.postal_code %>'
-                                            )">
-                                        <i class="fas fa-pen icon"></i>
-                                    </button>
-                                    </td>
+                                        <!-- <td>
+                                            <button class="btn btn-update" 
+                                                onclick="openEditModal(
+                                                    '<%= customerSummary.lastOrderId %>',  // Change here to use lastOrderId
+                                                    '<%= customerSummary.customer.first_name %>', 
+                                                    '<%= customerSummary.customer.last_name %>', 
+                                                    '<%= customerSummary.customer.phone %>', 
+                                                    '<%= customerSummary.customer.email %>', 
+                                                    '<%= customerSummary.customer.city %>', 
+                                                    '<%= customerSummary.customer.province %>', 
+                                                    '<%= customerSummary.customer.street_address %>', 
+                                                    '<%= customerSummary.customer.postal_code %>'
+                                                )">
+                                            <i class="fas fa-pen icon"></i>
+                                        </button>
+                                        </td> -->
                                     <div class="modal" id="editModal">
                                         <div class="modal-content">
                                             <div class="title-frame">

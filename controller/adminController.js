@@ -559,7 +559,7 @@ exports.createUser = async(req, res) => {
 
         await newUser.save();
         req.session.success = 'New user Added!'; 
-        res.redirect('/admin/accounts', {user : req.user,});
+        res.redirect('/admin/accounts');
     } catch (error) {
         res.status(400).json({message: error.message});
     }
@@ -585,7 +585,7 @@ exports.editUser = async (req, res) => {
 
         await user.save();
         req.session.success = 'User updated successfully';
-        res.redirect('/admin/accounts', {user : req.user,});
+        res.redirect('/admin/accounts');
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "An unexpected error occurred. Please try again later." });
@@ -602,7 +602,7 @@ exports.deleteUser = async (req, res) => {
 
         await User.deleteOne({ _id: user._id });
         req.session.success = 'User deleted successfully';
-        res.redirect('/admin/accounts', {user : req.user,});
+        res.redirect('/admin/accounts');
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
@@ -664,22 +664,20 @@ exports.displayTransactions = async (req, res) => {
     }
 };
 
-
-
 exports.updateOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.id;
         const { customer, status, dispatch, delivered, courier } = req.body;
 
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).populate('products.product');
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        if (order.status == 'cancelled') {
+        if (status == 'cancelled') {
             for (const productItem of order.products) {
-                const product = await Product.findOne({ name: productItem.product.name, size: productItem.size });
-                console.log(productItem.quantity);
+                const product = productItem.product;
+
                 if (product) {
                     product.stock += productItem.quantity;
                     await product.save();
@@ -727,7 +725,7 @@ exports.addNewItem = async (req, res) => {
         const newProduct = new Product({ name, price, size, stock });
         await newProduct.save();
         req.session.success = 'New item added successfully';
-        res.redirect('/admin/stocks', {user : req.user,});
+        res.redirect('/admin/stocks');
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -747,7 +745,7 @@ exports.editProduct = async (req, res) => {
         product.stock = stock;
         await product.save();
         req.session.success = 'Product updated successfully';
-        res.redirect('/admin/stocks', {user : req.user,});
+        res.redirect('/admin/stocks');
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -762,7 +760,7 @@ exports.deleteProduct = async (req, res) => {
         }
         await Product.deleteOne({ _id: product._id });
         req.session.success = 'Product deleted successfully';
-        res.redirect('/admin/stocks', {user : req.user,});
+        res.redirect('/admin/stocks');
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
@@ -806,7 +804,7 @@ exports.addNewOrder = async (req, res) => {
         await newOrder.save();
 
         req.session.success = 'Order placed successfully';
-        res.redirect('/admin/transactions', {user : req.user,});
+        res.redirect('/admin/transactions');
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -843,7 +841,7 @@ exports.editOrder = async (req, res) => {
 
         await order.save();
         req.session.success = 'Order updated successfully';
-        res.redirect('/admin/transactions', {user : req.user,});
+        res.redirect('/admin/transactions');
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -859,7 +857,7 @@ exports.deleteOrder = async (req, res) => {
         }
         await Order.deleteOne({ _id: orderId });
         req.session.success = 'Order deleted successfully';
-        res.redirect('/admin/transactions', {user : req.user,});
+        res.redirect('/admin/transactions');
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');

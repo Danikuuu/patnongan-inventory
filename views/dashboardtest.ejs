@@ -419,9 +419,8 @@
                             <span><p5>Welcome to your Dashboard</p5></span>
                             <form id="filterForm" method="GET" action="/admin/filtered-dashboard">
                                 <select id="filter" name="filter" onchange="this.form.submit()">
-                                    <option value="">Filtered By</option>
+                                    <option value="">All Records</option>
                                     <option value="upToDate" <%= filter === 'upToDate' ? 'selected' : '' %>>Current</option>
-                                    <option value="today" <%= filter === 'today' ? 'selected' : '' %>>Today</option>
                                     <option value="weekly" <%= filter === 'weekly' ? 'selected' : '' %>>Weekly</option>
                                     <option value="monthly" <%= filter === 'monthly' ? 'selected' : '' %>>Monthly</option>
                                 </select>
