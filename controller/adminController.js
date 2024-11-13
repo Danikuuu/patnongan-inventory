@@ -669,26 +669,27 @@ exports.displayTransactions = async (req, res) => {
 exports.updateOrderDetails = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const { customer, products, total, status, dispatch, delivered, courier } = req.body;
+        const { customer, status, dispatch, delivered, courier } = req.body;
 
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        // Update order details
+        if (order.status == 'cancelled') {
+            for (const productItem of order.products) {
+                const product = await Product.findOne({ name: productItem.product.name, size: productItem.size });
+                console.log(productItem.quantity);
+                if (product) {
+                    product.stock += productItem.quantity;
+                    await product.save();
+                }
+            }
+        }
+
         order.customer = customer;
-        order.total = total;
         order.status = status;
         order.courier = courier;
-        
-
-        order.products = products.map(item => ({
-            product: item.product,
-            name: item.name,  
-            quantity: item.quantity,
-            size: item.size 
-        }));
 
         if (dispatch) {
             order.dispatch = new Date(dispatch);
@@ -699,7 +700,7 @@ exports.updateOrderDetails = async (req, res) => {
 
         await order.save();
         req.session.success = 'Order updated successfully';
-        res.redirect('/admin/transactions', {user : req.user,});
+        res.redirect('/admin/transactions');
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });

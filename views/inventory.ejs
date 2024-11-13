@@ -638,7 +638,7 @@ select {
                                 <th>Purchase</th>
                                 <!-- <th>Dispatch</th> -->
                                 <th>Delivered By</th>
-                                <th  colspan="2">Actions</th>
+                                <th  colspan="2">Actions</th>   
                             </tr>
                         </thead>
                         <tbody>
@@ -712,14 +712,15 @@ select {
                                             <div class="row">
                                                 <div class="field">
                                                     <label for="customer_<%= order._id %>">Customer Name:</label>
+                                                    <label style="margin-top: -8px; color: black; text-decoration: underline;"><%=order.customer.first_name%> <%=order.customer.last_name%></label>
                                                     <input type="text" name="customer" id="customer_<%= order._id %>" 
                                                            value="<%= order.customer.first_name %> <%= order.customer.last_name %>" 
-                                                           required>
+                                                           required hidden>
                                                 </div>
                                                 <div class="field">
                                                     <label for="courier_<%= order._id %>">Courier:</label>
                                                     <input type="text" name="courier" id="courier_<%= order._id %>" 
-                                                           value="<%= order.courier %>" required>
+                                                           value="<%= order.courier %>" required readonly>
                                                 </div>
                                             </div>
                                 
@@ -728,28 +729,20 @@ select {
                                                 <div class="product-group">
                                                     <div class="field">
                                                         <label for="product_<%= order._id %>_<%= index %>">Product Name:</label>
-                                                        <input type="hidden" name="products[<%= index %>][name]" 
-                                                               value="<%= productItem.name %>" required>
-                                                        <select name="products[<%= index %>][product]" id="product_<%= order._id %>_<%= index %>">
-                                                            <% products.forEach((product) => { %>
-                                                                <option value="<%= product._id %>" 
-                                                                    <% if (product.name === productItem.name) { %>disabled<% } %>> 
-                                                                    <%= product.name %>
-                                                                </option>
-                                                            <% }); %>
-                                                        </select>                                                            
+                                                        <input type="hidden" name="products[<%= index %>][name]" id="product_<%= order._id %>_<%= index %>" value="<%=productItem.product.name%>">  
+                                                        <label style=" color: black; text-decoration: underline;"><%=productItem.product.name%></label>                                                          
                                                     </div>
                                                     <div class="field">
                                                         <label for="quantity_<%= order._id %>_<%= index %>">Quantity:</label>
                                                         <input type="number" name="products[<%= index %>][quantity]" 
                                                                id="quantity_<%= order._id %>_<%= index %>" 
-                                                               value="<%= productItem.quantity %>" required>
+                                                               value="<%= productItem.quantity %>" required readonly>
                                                     </div>
                                                     <div class="field">
                                                         <label for="size_<%= order._id %>_<%= index %>">Size:</label>
                                                         <input type="text" name="products[<%= index %>][size]" 
                                                                id="size_<%= order._id %>_<%= index %>" 
-                                                               value="<%= productItem.size %>" required>
+                                                               value="<%= productItem.size %>" required readonly>
                                                     </div>
                                                 </div>
                                             <% }); %>
@@ -758,14 +751,13 @@ select {
                                                 <div class="field">
                                                     <label for="total_<%= order._id %>">Total Amount:</label>
                                                     <input type="number" name="total" id="total_<%= order._id %>" 
-                                                           value="<%= order.total %>" required>
+                                                           value="<%= order.total %>" required readonly>
                                                 </div>
                                                 <div class="field">
                                                     <label for="status_<%= order._id %>">Status:</label>
                                                     <select name="status" id="status_<%= order._id %>" required>
                                                         <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
                                                         <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Processing</option>
-                                                        <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
                                                         <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
                                                         <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                                                     </select>
@@ -776,7 +768,7 @@ select {
                                                 <div class="field">
                                                     <label for="dispatch_<%= order._id %>">Dispatch Date:</label>
                                                     <input type="date" name="dispatch" id="dispatch_<%= order._id %>" 
-                                                           value="<%= order.dispatch ? order.dispatch.toISOString().split('T')[0] : '' %>">
+                                                           value="<%= order.dispatch ? order.dispatch.toISOString().split('T')[0] : '' %>" readonly>
                                                 </div>
                                                 <div class="field">
                                                     <label for="delivered_<%= order._id %>">Delivered Date:</label>
