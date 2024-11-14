@@ -615,7 +615,9 @@ exports.displayTransactions = async (req, res) => {
         const limit = 8;
         const skip = (page - 1) * limit; 
         const success = req.session.success;
-        req.session.success = null; 
+        req.session.success = null;
+        req.session.error = null;
+        const errorMessage = req.session.error; 
 
         const products = await Product.find();
         
@@ -656,6 +658,7 @@ exports.displayTransactions = async (req, res) => {
             success,
             products,
             user : req.user,
+            errorMessage
         });
         
     } catch (error) {
@@ -781,8 +784,10 @@ exports.addNewOrder = async (req, res) => {
         }
 
         if (productData.stock < quantity) {
-            res.redirect('/admin/transactions', { error: 'Not enough stock available for this order.'});
-        }
+            console.log(productData.stock);
+            req.session.errorMessage = 'Not enough stock available for this order.';
+            return res.redirect('/admin/transactions');
+        }        
 
         const totalAmount = productData.price * quantity;
 
