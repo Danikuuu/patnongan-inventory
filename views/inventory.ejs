@@ -882,13 +882,13 @@ function closeEditModal(transactionId) {
             </select>
             
             <label for="Product">Product</label>
-            <select name="product" id="product"required
+            <select name="product" id="product" required>
                 <option value="">Select a product</option>
                 <% products.forEach(product => { %>
                     <option value="<%= product._id %>" data-price="<%= product.price %>"><%= product.name %></option>
                 <% }) %>
             </select>
-            
+
             <label for="Quantity">Quantity</label>
             <input type="number" name="quantity" id="quantity" min="1" value="1" required>
             
